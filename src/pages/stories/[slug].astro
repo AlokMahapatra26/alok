@@ -1,0 +1,402 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StoryComments from '../../components/StoryComments.astro';
+import { stories, type Story } from '../../data/stories';
+
+export function getStaticPaths() {
+  return stories.map((story, index) => {
+    const prevStory = index > 0 ? stories[index - 1] : null;
+    const nextStory = index < stories.length - 1 ? stories[index + 1] : null;
+    return {
+      params: { slug: story.slug },
+      props: { story, prevStory, nextStory },
+    };
+  });
+}
+
+interface Props {
+  story: Story;
+  prevStory: Story | null;
+  nextStory: Story | null;
+}
+
+const { story, prevStory, nextStory } = Astro.props;
+---
+
+<BaseLayout
+  title={`${story.title} — Alok Mahapatra`}
+  description={story.excerpt}
+  activePath="/stories"
+>
+  <!-- Reading Progress Bar -->
+  <div id="reading-progress" class="reading-progress-bar" aria-hidden="true"></div>
+
+  <article class="content-container story-reader-page">
+    <!-- Back Navigation & Reader Controls -->
+    <div class="reader-toolbar">
+      <a href="/stories" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Stories</span>
+      </a>
+
+      <div class="reader-controls">
+        <button type="button" id="font-toggle-btn" class="ctrl-btn" title="Toggle Serif / Sans">
+          <span class="ctrl-label">Font</span>
+        </button>
+        <button type="button" id="font-smaller-btn" class="ctrl-btn" title="Decrease font size">
+          <span>A-</span>
+        </button>
+        <button type="button" id="font-larger-btn" class="ctrl-btn" title="Increase font size">
+          <span>A+</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Article Header -->
+    <header class="story-article-header">
+      <div class="header-meta">
+        <span class="tag">{story.category}</span>
+        <span class="meta-dot">•</span>
+        <span class="meta-text">{story.readTime}</span>
+        <span class="meta-dot">•</span>
+        <time class="meta-text">{story.date}</time>
+      </div>
+
+      <h1 class="article-title">{story.title}</h1>
+      <p class="article-subtitle">{story.subtitle}</p>
+
+      <div class="author-line">
+        <div class="author-avatar">AM</div>
+        <div class="author-details">
+          <span class="author-name">Alok Mahapatra</span>
+          <span class="author-role">Author</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="article-divider"></div>
+
+    <!-- Story Body -->
+    <div id="story-body" class="prose story-content">
+      {story.content.map((paragraph, idx) => (
+        <p class={idx === 0 ? 'drop-cap' : ''}>{paragraph}</p>
+      ))}
+    </div>
+
+    <!-- Author Signoff / Endnote -->
+    <footer class="story-article-footer">
+      <div class="end-mark">
+        <span>❖</span>
+      </div>
+      <p class="signoff-note">
+        If this story resonated with you, feel free to share your thoughts in the reflections below.
+      </p>
+
+      <!-- Prev / Next Navigation -->
+      <nav class="story-nav" aria-label="Adjacent Stories">
+        {prevStory ? (
+          <a href={`/stories/${prevStory.slug}`} class="prev-story-link">
+            <span class="nav-direction">&larr; Previous</span>
+            <span class="nav-title">{prevStory.title}</span>
+          </a>
+        ) : <div />}
+
+        {nextStory && (
+          <a href={`/stories/${nextStory.slug}`} class="next-story-link">
+            <span class="nav-direction">Next &rarr;</span>
+            <span class="nav-title">{nextStory.title}</span>
+          </a>
+        )}
+      </nav>
+    </footer>
+
+    <!-- Interactive Comments Section -->
+    <StoryComments 
+      storySlug={story.slug} 
+      storyTitle={story.title} 
+      initialComments={story.initialComments} 
+    />
+  </article>
+</BaseLayout>
+
+<style>
+  .reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--accent-terra);
+    width: 0%;
+    z-index: 999;
+    transition: width 0.1s ease-out;
+  }
+
+  .story-reader-page {
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .reader-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+  }
+
+  .back-link:hover {
+    color: var(--accent-terra);
+  }
+
+  .reader-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ctrl-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    transition: all 0.15s ease;
+  }
+
+  .ctrl-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .story-article-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-dot {
+    color: var(--text-faint);
+  }
+
+  .meta-text {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .article-title {
+    font-size: 2.65rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  .article-subtitle {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  .author-line {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .author-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-strong);
+    color: var(--accent-terra);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .author-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .author-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+  }
+
+  .author-role {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .article-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin-bottom: 2.5rem;
+  }
+
+  .story-content {
+    margin-bottom: 3.5rem;
+  }
+
+  .story-article-footer {
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .end-mark {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--accent-terra);
+    margin-bottom: 1.5rem;
+  }
+
+  .signoff-note {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto 3rem auto;
+    line-height: 1.6;
+  }
+
+  .story-nav {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-top: 2rem;
+    border-top: 1px dashed var(--border-light);
+  }
+
+  .prev-story-link,
+  .next-story-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 260px;
+  }
+
+  .next-story-link {
+    text-align: right;
+    margin-left: auto;
+  }
+
+  .nav-direction {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .nav-title {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color 0.15s ease;
+  }
+
+  .nav-title:hover {
+    color: var(--accent-terra);
+  }
+
+  @media (max-width: 640px) {
+    .article-title {
+      font-size: 2.1rem;
+    }
+    .article-subtitle {
+      font-size: 1.1rem;
+    }
+    .story-nav {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .next-story-link {
+      text-align: left;
+      margin-left: 0;
+    }
+  }
+</style>
+
+<script>
+  function setupReader() {
+    // Reading progress bar
+    const progress = document.getElementById('reading-progress');
+    const updateProgress = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 0) return;
+      const scrolled = (window.scrollY / docHeight) * 100;
+      if (progress) progress.style.width = `${Math.min(100, Math.max(0, scrolled))}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    updateProgress();
+
+    // Reader controls: Font toggle & size
+    const storyBody = document.getElementById('story-body');
+    const fontToggle = document.getElementById('font-toggle-btn');
+    const fontSmaller = document.getElementById('font-smaller-btn');
+    const fontLarger = document.getElementById('font-larger-btn');
+
+    let isSans = false;
+    let currentFontSize = 1.15; // rem
+
+    fontToggle?.addEventListener('click', () => {
+      isSans = !isSans;
+      if (storyBody) {
+        storyBody.style.fontFamily = isSans ? 'var(--font-sans)' : 'var(--font-serif)';
+      }
+      const label = fontToggle.querySelector('.ctrl-label');
+      if (label) label.textContent = isSans ? 'Serif' : 'Sans';
+    });
+
+    fontSmaller?.addEventListener('click', () => {
+      if (currentFontSize > 0.95) {
+        currentFontSize -= 0.1;
+        if (storyBody) storyBody.style.fontSize = `${currentFontSize}rem`;
+      }
+    });
+
+    fontLarger?.addEventListener('click', () => {
+      if (currentFontSize < 1.45) {
+        currentFontSize += 0.1;
+        if (storyBody) storyBody.style.fontSize = `${currentFontSize}rem`;
+      }
+    });
+  }
+
+  setupReader();
+  document.addEventListener('astro:after-swap', setupReader);
+</script>

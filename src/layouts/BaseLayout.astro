@@ -1,0 +1,87 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import DiaryWriterModal from '../components/DiaryWriterModal.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  activePath?: string;
+}
+
+const {
+  title = "Alok Mahapatra — Journal & Stories",
+  description = "A quiet digital corner for personal diary logs, reflective writing, and evocative stories where readers can pause and converse.",
+  activePath = "/",
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost:4321');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO Meta Tags -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL} />
+
+    <!-- Theme & Auth Initialization Script (prevents flicker) -->
+    <script is:inline>
+      (function () {
+        const storedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+
+        // Author login check (hides all write actions if logged out)
+        try {
+          const keys = Object.keys(localStorage);
+          const hasAuth = keys.some(function(k) {
+            if (k.startsWith('sb-') && k.endsWith('-auth-token')) {
+              var val = localStorage.getItem(k);
+              return val && val.length > 20 && val !== 'null';
+            }
+            return false;
+          });
+          if (hasAuth) {
+            document.documentElement.setAttribute('data-author-authenticated', 'true');
+          } else {
+            document.documentElement.removeAttribute('data-author-authenticated');
+          }
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body id="top">
+    <Header activePath={activePath} />
+    <main class="site-main">
+      <slot />
+    </main>
+    <Footer />
+    <DiaryWriterModal />
+  </body>
+</html>
+
+<style>
+  .site-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+</style>

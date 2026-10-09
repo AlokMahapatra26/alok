@@ -1,0 +1,1012 @@
+---
+// DiaryWriterModal.astro - Author Desk Composer for Diary & Stories
+---
+
+<div id="diary-writer-modal" class="writer-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="writer-modal-container">
+    <div class="writer-modal-header">
+      <div class="composer-type-tabs">
+        <button type="button" class="type-tab active" id="tab-diary" data-mode="diary">
+          <span>Journal Log</span>
+        </button>
+        <button type="button" class="type-tab" id="tab-story" data-mode="story">
+          <span>Story / Prose</span>
+        </button>
+        <span id="composer-editing-tag" class="composer-editing-tag" style="display: none;">Editing</span>
+      </div>
+      <button type="button" id="close-modal-btn" class="close-btn" aria-label="Close composer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <!-- DIARY FORM -->
+    <form id="diary-writer-form" class="writer-form" onsubmit="event.preventDefault();">
+      <div class="form-title-row">
+        <input 
+          type="text" 
+          id="entry-title" 
+          class="title-input" 
+          placeholder="Title of this day's entry..." 
+          required 
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="metadata-grid">
+        <div class="meta-field">
+          <label for="entry-mood">Mood</label>
+          <select id="entry-mood" class="meta-select">
+            <option value="Reflective|🌧️">🌧️ Reflective</option>
+            <option value="Contemplative|☕">☕ Contemplative</option>
+            <option value="Grounded|🌿">🌿 Grounded</option>
+            <option value="Nostalgic|🍂">🍂 Nostalgic</option>
+            <option value="Peaceful|✨">✨ Peaceful</option>
+            <option value="Inspired|💡">💡 Inspired</option>
+          </select>
+        </div>
+
+        <div class="meta-field">
+          <label for="entry-time">Time</label>
+          <input type="text" id="entry-time" class="meta-input" placeholder="e.g. 06:15 PM" />
+        </div>
+
+        <div class="meta-field">
+          <label for="entry-location">Location</label>
+          <input type="text" id="entry-location" class="meta-input" placeholder="e.g. Home, Study, Cafe" />
+        </div>
+
+        <div class="meta-field">
+          <label for="entry-weather">Atmosphere / Weather</label>
+          <input type="text" id="entry-weather" class="meta-input" placeholder="e.g. Quiet evening, Rain" />
+        </div>
+      </div>
+
+      <div class="content-field">
+        <textarea 
+          id="entry-content" 
+          class="content-textarea" 
+          rows="7" 
+          placeholder="Begin writing. What thoughts lingered today? Use two returns for new paragraphs..." 
+          required
+        ></textarea>
+      </div>
+
+      <div class="writer-footer">
+        <div class="stats">
+          <span id="word-count-display">0 words</span>
+          <span class="dot">•</span>
+          <span id="read-time-display">1 min read</span>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="cancel-btn modal-cancel-trigger">Discard</button>
+          <button type="submit" class="save-btn" id="diary-save-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
+            </svg>
+            <span>Save to Journal</span>
+          </button>
+        </div>
+      </div>
+    </form>
+
+    <!-- STORY FORM -->
+    <form id="story-writer-form" class="writer-form" onsubmit="event.preventDefault();" style="display: none;">
+      <div class="form-title-row">
+        <input 
+          type="text" 
+          id="story-title" 
+          class="title-input" 
+          placeholder="Story title..." 
+          required 
+          autocomplete="off"
+        />
+      </div>
+
+      <div class="story-meta-grid">
+        <div class="meta-field">
+          <label for="story-subtitle">Subtitle / Hook</label>
+          <input type="text" id="story-subtitle" class="meta-input" placeholder="A quiet evening, words left unsaid..." />
+        </div>
+
+        <div class="meta-field">
+          <label for="story-category">Category</label>
+          <select id="story-category" class="meta-select">
+            <option value="Short Story">Short Story</option>
+            <option value="Memoir">Memoir</option>
+            <option value="Fiction">Fiction</option>
+            <option value="Essay">Essay</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="meta-field thumbnail-field">
+        <div class="thumbnail-header-row">
+          <label for="story-cover-url">Story Thumbnail / Cover Image</label>
+          <span class="optional-label">(Optional URL)</span>
+        </div>
+        <div class="thumbnail-input-group">
+          <input 
+            type="url" 
+            id="story-cover-url" 
+            class="meta-input thumbnail-input" 
+            placeholder="Paste image URL, e.g. https://images.unsplash.com/..." 
+          />
+          <button type="button" id="clear-cover-btn" class="clear-thumb-btn" title="Clear thumbnail" style="display: none;">
+            Clear
+          </button>
+        </div>
+
+        <div class="thumb-presets-row">
+          <span class="preset-label">Presets:</span>
+          <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80">☕ Coffee & Book</button>
+          <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80">🏔️ Starry Peak</button>
+          <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80">🌲 Forest Mist</button>
+          <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">🌅 Golden Glow</button>
+        </div>
+
+        <div id="thumb-preview-box" class="thumb-preview-box" style="display: none;">
+          <img id="thumb-preview-img" src="" alt="Thumbnail preview" />
+        </div>
+      </div>
+
+      <div class="meta-field">
+        <label for="story-excerpt">Excerpt / Preview</label>
+        <textarea id="story-excerpt" class="meta-textarea" rows="2" placeholder="Brief summary or opening hook shown in previews..." required></textarea>
+      </div>
+
+      <div class="content-field">
+        <label for="story-content" class="label-heading">Story Prose</label>
+        <textarea 
+          id="story-content" 
+          class="content-textarea" 
+          rows="8" 
+          placeholder="Write your story. Separate paragraphs with double returns..." 
+          required
+        ></textarea>
+      </div>
+
+      <div class="writer-footer">
+        <div class="stats">
+          <span id="story-words-display">0 words</span>
+          <span class="dot">•</span>
+          <span id="story-readtime-display">1 min read</span>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="cancel-btn modal-cancel-trigger">Discard</button>
+          <button type="submit" class="save-btn" id="story-save-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Publish Story</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .writer-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(18, 19, 20, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 100;
+  }
+
+  .writer-modal-overlay.open {
+    display: flex;
+  }
+
+  .writer-modal-container {
+    width: 100%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+    animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: scale(0.97) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .writer-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    background-color: var(--bg-secondary);
+  }
+
+  .composer-type-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .type-tab {
+    padding: 0.35rem 0.85rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    transition: all 0.15s ease;
+  }
+
+  .type-tab:hover {
+    color: var(--text-primary);
+  }
+
+  .type-tab.active {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    font-weight: 600;
+  }
+
+  .composer-editing-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background-color: rgba(197, 85, 59, 0.12);
+    color: var(--accent-terra);
+    border: 1px solid rgba(197, 85, 59, 0.25);
+  }
+
+  .close-btn {
+    color: var(--text-muted);
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease;
+  }
+
+  .close-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .writer-form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .title-input {
+    width: 100%;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.65rem;
+    outline: none;
+  }
+
+  .title-input:focus {
+    border-bottom-color: var(--accent-terra);
+  }
+
+  .metadata-grid,
+  .story-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+  }
+
+  .meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .meta-field label,
+  .label-heading {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .meta-input,
+  .meta-select,
+  .meta-textarea {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.65rem;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  .meta-input:focus,
+  .meta-select:focus,
+  .meta-textarea:focus {
+    border-color: var(--accent-terra);
+  }
+
+  .thumbnail-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .optional-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .thumbnail-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .thumbnail-input {
+    flex: 1;
+  }
+
+  .clear-thumb-btn {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.65rem;
+    color: var(--text-muted);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .clear-thumb-btn:hover {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.3);
+  }
+
+  .thumb-presets-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.25rem;
+  }
+
+  .preset-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .preset-pill {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+
+  .preset-pill:hover {
+    color: var(--accent-terra);
+    border-color: var(--accent-terra);
+    background-color: var(--bg-card);
+  }
+
+  .thumb-preview-box {
+    margin-top: 0.5rem;
+    width: 100%;
+    height: 120px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+  }
+
+  .thumb-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .content-field {
+    width: 100%;
+  }
+
+  .content-textarea {
+    width: 100%;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    resize: vertical;
+    min-height: 160px;
+    outline: none;
+  }
+
+  .content-textarea:focus {
+    border-color: var(--accent-terra);
+  }
+
+  .writer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .stats {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .cancel-btn {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease;
+  }
+
+  .cancel-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--accent-terra);
+    border-radius: var(--radius-sm);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .save-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 600px) {
+    .metadata-grid,
+    .story-meta-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { 
+    isSupabaseConfigured, 
+    createSupabaseDiaryEntry, 
+    updateSupabaseDiaryEntry,
+    createSupabaseStory,
+    updateSupabaseStory 
+  } from '../lib/supabase';
+
+  function setupAuthorComposer() {
+    const modal = document.getElementById('diary-writer-modal');
+    const closeBtn = document.getElementById('close-modal-btn');
+    const cancelBtns = document.querySelectorAll('.modal-cancel-trigger');
+
+    const tabDiary = document.getElementById('tab-diary');
+    const tabStory = document.getElementById('tab-story');
+    const editTag = document.getElementById('composer-editing-tag');
+    const diaryForm = document.getElementById('diary-writer-form') as HTMLFormElement;
+    const storyForm = document.getElementById('story-writer-form') as HTMLFormElement;
+
+    let editingDiaryId: string | null = null;
+    let editingStoryId: string | null = null;
+
+    function resetComposerState() {
+      editingDiaryId = null;
+      editingStoryId = null;
+      if (editTag) editTag.style.display = 'none';
+
+      const diarySaveBtn = document.getElementById('diary-save-btn');
+      if (diarySaveBtn) {
+        const span = diarySaveBtn.querySelector('span');
+        if (span) span.textContent = 'Save to Journal';
+      }
+
+      const storySaveBtn = document.getElementById('story-save-btn');
+      if (storySaveBtn) {
+        const span = storySaveBtn.querySelector('span');
+        if (span) span.textContent = 'Publish Story';
+      }
+
+      diaryForm?.reset();
+      storyForm?.reset();
+
+      const timeInput = document.getElementById('entry-time') as HTMLInputElement;
+      if (timeInput) {
+        timeInput.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      const coverUrlInput = document.getElementById('story-cover-url') as HTMLInputElement;
+      if (coverUrlInput) coverUrlInput.value = '';
+      updateThumbPreview('');
+
+      const wordCountDisplay = document.getElementById('word-count-display');
+      const readTimeDisplay = document.getElementById('read-time-display');
+      if (wordCountDisplay) wordCountDisplay.textContent = '0 words';
+      if (readTimeDisplay) readTimeDisplay.textContent = '1 min read';
+
+      const storyWordsDisplay = document.getElementById('story-words-display');
+      const storyReadtimeDisplay = document.getElementById('story-readtime-display');
+      if (storyWordsDisplay) storyWordsDisplay.textContent = '0 words';
+      if (storyReadtimeDisplay) storyReadtimeDisplay.textContent = '1 min read';
+    }
+
+    const coverUrlInput = document.getElementById('story-cover-url') as HTMLInputElement;
+    const clearCoverBtn = document.getElementById('clear-cover-btn') as HTMLButtonElement;
+    const thumbPreviewBox = document.getElementById('thumb-preview-box') as HTMLElement;
+    const thumbPreviewImg = document.getElementById('thumb-preview-img') as HTMLImageElement;
+
+    function updateThumbPreview(url: string) {
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        if (thumbPreviewImg) thumbPreviewImg.src = url;
+        if (thumbPreviewBox) thumbPreviewBox.style.display = 'block';
+        if (clearCoverBtn) clearCoverBtn.style.display = 'inline-block';
+      } else {
+        if (thumbPreviewBox) thumbPreviewBox.style.display = 'none';
+        if (clearCoverBtn) clearCoverBtn.style.display = 'none';
+        if (thumbPreviewImg) thumbPreviewImg.src = '';
+      }
+    }
+
+    coverUrlInput?.addEventListener('input', () => {
+      updateThumbPreview(coverUrlInput.value.trim());
+    });
+
+    clearCoverBtn?.addEventListener('click', () => {
+      if (coverUrlInput) coverUrlInput.value = '';
+      updateThumbPreview('');
+    });
+
+    document.querySelectorAll('.preset-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const imgUrl = target.dataset.img || '';
+        if (coverUrlInput) {
+          coverUrlInput.value = imgUrl;
+          updateThumbPreview(imgUrl);
+        }
+      });
+    });
+
+    (window as any).resetComposerState = resetComposerState;
+
+    // Tab Switching
+    tabDiary?.addEventListener('click', () => {
+      tabDiary.classList.add('active');
+      tabStory?.classList.remove('active');
+      if (diaryForm) diaryForm.style.display = 'flex';
+      if (storyForm) storyForm.style.display = 'none';
+    });
+
+    tabStory?.addEventListener('click', () => {
+      tabStory.classList.add('active');
+      tabDiary?.classList.remove('active');
+      if (storyForm) storyForm.style.display = 'flex';
+      if (diaryForm) diaryForm.style.display = 'none';
+    });
+
+    const closeModal = () => {
+      if (modal) {
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+      resetComposerState();
+    };
+
+    closeBtn?.addEventListener('click', closeModal);
+    cancelBtns.forEach(btn => btn.addEventListener('click', closeModal));
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal?.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    // Auto-fill time
+    const timeInput = document.getElementById('entry-time') as HTMLInputElement;
+    if (timeInput && !timeInput.value) {
+      timeInput.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Diary word count
+    const entryContent = document.getElementById('entry-content') as HTMLTextAreaElement;
+    const wordCountDisplay = document.getElementById('word-count-display');
+    const readTimeDisplay = document.getElementById('read-time-display');
+
+    entryContent?.addEventListener('input', () => {
+      const text = entryContent.value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      if (wordCountDisplay) wordCountDisplay.textContent = `${words} words`;
+      if (readTimeDisplay) {
+        const minutes = Math.max(1, Math.ceil(words / 180));
+        readTimeDisplay.textContent = `${minutes} min read`;
+      }
+    });
+
+    // Story word count
+    const storyContent = document.getElementById('story-content') as HTMLTextAreaElement;
+    const storyWordsDisplay = document.getElementById('story-words-display');
+    const storyReadtimeDisplay = document.getElementById('story-readtime-display');
+
+    storyContent?.addEventListener('input', () => {
+      const text = storyContent.value.trim();
+      const words = text ? text.split(/\s+/).length : 0;
+      if (storyWordsDisplay) storyWordsDisplay.textContent = `${words} words`;
+      if (storyReadtimeDisplay) {
+        const minutes = Math.max(1, Math.ceil(words / 200));
+        storyReadtimeDisplay.textContent = `${minutes} min read`;
+      }
+    });
+
+    // Expose openDiaryEditor globally
+    (window as any).openDiaryEditor = (entry: any) => {
+      if (!entry) return;
+      resetComposerState();
+      editingDiaryId = entry.id || null;
+      editingStoryId = null;
+
+      tabDiary?.click();
+
+      const titleInput = document.getElementById('entry-title') as HTMLInputElement;
+      const moodSelect = document.getElementById('entry-mood') as HTMLSelectElement;
+      const timeIn = document.getElementById('entry-time') as HTMLInputElement;
+      const locInput = document.getElementById('entry-location') as HTMLInputElement;
+      const weatherInput = document.getElementById('entry-weather') as HTMLInputElement;
+      const contentIn = document.getElementById('entry-content') as HTMLTextAreaElement;
+
+      if (titleInput) titleInput.value = entry.title || '';
+      if (moodSelect) {
+        const moodName = entry.mood || 'Reflective';
+        for (let i = 0; i < moodSelect.options.length; i++) {
+          if (moodSelect.options[i].value.startsWith(moodName)) {
+            moodSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      if (timeIn) timeIn.value = entry.time_of_day || entry.timeOfDay || '';
+      if (locInput) locInput.value = entry.location || '';
+      if (weatherInput) weatherInput.value = entry.weather || '';
+      if (contentIn) {
+        contentIn.value = Array.isArray(entry.content) ? entry.content.join('\n\n') : (entry.content || '');
+        contentIn.dispatchEvent(new Event('input'));
+      }
+
+      if (editTag) {
+        editTag.textContent = 'Editing Journal Entry';
+        editTag.style.display = 'inline-block';
+      }
+
+      const saveBtn = document.getElementById('diary-save-btn');
+      if (saveBtn) {
+        const span = saveBtn.querySelector('span');
+        if (span) span.textContent = 'Update Entry';
+      }
+
+      if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    // Expose openStoryEditor globally
+    (window as any).openStoryEditor = (story: any) => {
+      if (!story) return;
+      resetComposerState();
+      editingStoryId = story.id || null;
+      editingDiaryId = null;
+
+      tabStory?.click();
+
+      const titleInput = document.getElementById('story-title') as HTMLInputElement;
+      const subInput = document.getElementById('story-subtitle') as HTMLInputElement;
+      const catSelect = document.getElementById('story-category') as HTMLSelectElement;
+      const excerptInput = document.getElementById('story-excerpt') as HTMLTextAreaElement;
+      const contentIn = document.getElementById('story-content') as HTMLTextAreaElement;
+
+      if (titleInput) titleInput.value = story.title || '';
+      if (subInput) subInput.value = story.subtitle || '';
+      if (catSelect && story.category) catSelect.value = story.category;
+      if (coverUrlInput) {
+        const coverVal = story.cover_image || story.coverImage || '';
+        coverUrlInput.value = coverVal;
+        updateThumbPreview(coverVal);
+      }
+      if (excerptInput) excerptInput.value = story.excerpt || '';
+      if (contentIn) {
+        contentIn.value = Array.isArray(story.content) ? story.content.join('\n\n') : (story.content || '');
+        contentIn.dispatchEvent(new Event('input'));
+      }
+
+      if (editTag) {
+        editTag.textContent = 'Editing Story';
+        editTag.style.display = 'inline-block';
+      }
+
+      const saveBtn = document.getElementById('story-save-btn');
+      if (saveBtn) {
+        const span = saveBtn.querySelector('span');
+        if (span) span.textContent = 'Update Story';
+      }
+
+      if (modal) {
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    // Diary submission
+    diaryForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = (document.getElementById('entry-title') as HTMLInputElement).value.trim();
+      const contentRaw = entryContent.value.trim();
+      if (!title || !contentRaw) return;
+
+      const [moodName, moodEmoji] = ((document.getElementById('entry-mood') as HTMLSelectElement).value || 'Reflective|🌧️').split('|');
+      const paragraphs = contentRaw.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      const words = contentRaw.split(/\s+/).length;
+      const readTime = `${Math.max(1, Math.ceil(words / 180))} min`;
+
+      const location = (document.getElementById('entry-location') as HTMLInputElement).value.trim() || 'Journal';
+      const weather = (document.getElementById('entry-weather') as HTMLInputElement).value.trim() || 'Quiet hours';
+      const timeOfDay = timeInput.value.trim() || 'Evening';
+
+      const saveBtn = document.getElementById('diary-save-btn') as HTMLButtonElement;
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = editingDiaryId ? 'Updating...' : 'Saving...';
+      }
+
+      try {
+        if (editingDiaryId) {
+          if (isSupabaseConfigured()) {
+            await updateSupabaseDiaryEntry(editingDiaryId, {
+              title,
+              content: paragraphs,
+              mood: moodName,
+              mood_emoji: moodEmoji,
+              location,
+              weather,
+              time_of_day: timeOfDay,
+              read_time: readTime
+            });
+          } else {
+            const stored = localStorage.getItem('custom_diary_entries');
+            if (stored) {
+              const list = JSON.parse(stored);
+              const idx = list.findIndex((x: any) => x.id === editingDiaryId);
+              if (idx !== -1) {
+                list[idx] = {
+                  ...list[idx],
+                  title,
+                  content: paragraphs,
+                  mood: moodName,
+                  moodEmoji,
+                  location,
+                  weather,
+                  timeOfDay,
+                  readTime
+                };
+                localStorage.setItem('custom_diary_entries', JSON.stringify(list));
+              }
+            }
+          }
+        } else {
+          if (isSupabaseConfigured()) {
+            await createSupabaseDiaryEntry({
+              title,
+              content: paragraphs,
+              mood: moodName,
+              mood_emoji: moodEmoji,
+              location,
+              weather,
+              time_of_day: timeOfDay,
+              read_time: readTime
+            });
+          } else {
+            // Fallback to localStorage if Supabase keys not set yet
+            const slug = 'entry-' + Date.now();
+            const stored = localStorage.getItem('custom_diary_entries');
+            const entries = stored ? JSON.parse(stored) : [];
+            entries.unshift({
+              id: 'diary-' + Date.now(),
+              slug,
+              title,
+              date: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+              timeOfDay,
+              location,
+              weather,
+              mood: moodName,
+              moodEmoji,
+              readTime,
+              content: paragraphs,
+              isCustom: true
+            });
+            localStorage.setItem('custom_diary_entries', JSON.stringify(entries));
+          }
+        }
+
+        window.dispatchEvent(new CustomEvent('diary_updated'));
+        closeModal();
+        window.location.reload();
+      } catch (err: any) {
+        alert('Failed to save entry: ' + (err.message || err));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `<span>${editingDiaryId ? 'Update Entry' : 'Save to Journal'}</span>`;
+        }
+      }
+    });
+
+    // Story submission
+    storyForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = (document.getElementById('story-title') as HTMLInputElement).value.trim();
+      const subtitle = (document.getElementById('story-subtitle') as HTMLInputElement).value.trim();
+      const category = (document.getElementById('story-category') as HTMLSelectElement).value;
+      const excerpt = (document.getElementById('story-excerpt') as HTMLTextAreaElement).value.trim();
+      const contentRaw = storyContent.value.trim();
+
+      if (!title || !contentRaw || !excerpt) return;
+
+      const paragraphs = contentRaw.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+      const words = contentRaw.split(/\s+/).length;
+      const readTime = `${Math.max(1, Math.ceil(words / 200))} min read`;
+      const coverUrl = coverUrlInput ? coverUrlInput.value.trim() : '';
+
+      const saveBtn = document.getElementById('story-save-btn') as HTMLButtonElement;
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = editingStoryId ? 'Updating...' : 'Publishing...';
+      }
+
+      try {
+        if (editingStoryId) {
+          if (isSupabaseConfigured()) {
+            await updateSupabaseStory(editingStoryId, {
+              title,
+              subtitle,
+              category,
+              excerpt,
+              read_time: readTime,
+              content: paragraphs,
+              cover_image: coverUrl
+            });
+          } else {
+            const stored = localStorage.getItem('custom_stories');
+            if (stored) {
+              const list = JSON.parse(stored);
+              const idx = list.findIndex((x: any) => x.id === editingStoryId);
+              if (idx !== -1) {
+                list[idx] = {
+                  ...list[idx],
+                  title,
+                  subtitle,
+                  category,
+                  excerpt,
+                  readTime,
+                  content: paragraphs,
+                  cover_image: coverUrl
+                };
+                localStorage.setItem('custom_stories', JSON.stringify(list));
+              }
+            }
+          }
+        } else {
+          if (isSupabaseConfigured()) {
+            await createSupabaseStory({
+              title,
+              subtitle,
+              category,
+              excerpt,
+              read_time: readTime,
+              content: paragraphs,
+              cover_image: coverUrl
+            });
+          } else {
+            // Local fallback
+            const slug = title.toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-4);
+            const stored = localStorage.getItem('custom_stories');
+            const list = stored ? JSON.parse(stored) : [];
+            list.unshift({
+              id: 'story-' + Date.now(),
+              slug,
+              title,
+              subtitle,
+              excerpt,
+              category,
+              readTime,
+              date: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+              content: paragraphs,
+              cover_image: coverUrl,
+              initialComments: []
+            });
+            localStorage.setItem('custom_stories', JSON.stringify(list));
+          }
+        }
+
+        closeModal();
+        window.location.reload();
+      } catch (err: any) {
+        alert('Failed to publish story: ' + (err.message || err));
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = `<span>${editingStoryId ? 'Update Story' : 'Publish Story'}</span>`;
+        }
+      }
+    });
+  }
+
+  setupAuthorComposer();
+  document.addEventListener('astro:after-swap', setupAuthorComposer);
+</script>

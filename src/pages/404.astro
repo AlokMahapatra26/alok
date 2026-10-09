@@ -1,0 +1,97 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page Not Found — Alok Mahapatra"
+  description="The page you are looking for does not exist."
+>
+  <div class="content-container not-found-container">
+    <span class="error-code">404</span>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-desc">
+      The entry or page you are looking for may have been moved, or the link may be outdated.
+    </p>
+    <div class="actions">
+      <a href="/" class="btn-home">Return to Home</a>
+      <a href="/diary" class="btn-diary">Open Diary Archive</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<script is:inline>
+  // Automatic route resolver for dynamic Supabase entries
+  (function() {
+    var path = window.location.pathname;
+    if (path.indexOf('/diary/') === 0) {
+      var slug = path.replace('/diary/', '').replace(/\/$/, '');
+      if (slug) {
+        window.location.replace('/diary-entry?slug=' + encodeURIComponent(slug));
+      }
+    } else if (path.indexOf('/stories/') === 0) {
+      var storySlug = path.replace('/stories/', '').replace(/\/$/, '');
+      if (storySlug) {
+        window.location.replace('/story?slug=' + encodeURIComponent(storySlug));
+      }
+    }
+  })();
+</script>
+
+<style>
+  .not-found-container {
+    padding-top: 6rem;
+    padding-bottom: 8rem;
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  .error-code {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    letter-spacing: 0.15em;
+    color: var(--accent-terra);
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+
+  .error-title {
+    font-size: 2.25rem;
+    font-weight: 500;
+    margin-bottom: 0.85rem;
+  }
+
+  .error-desc {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-home {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--text-primary);
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-diary {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+  }
+</style>

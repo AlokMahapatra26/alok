@@ -1,0 +1,902 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { diaryEntries } from '../../data/diary';
+
+const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'Peaceful'];
+---
+
+<BaseLayout
+  title="Diary & Reflections — Alok Mahapatra"
+  description="Chronological diary entries, observations, and quiet fragments written over early morning tea and rainy afternoons."
+  activePath="/diary"
+>
+  <div class="container diary-page-container">
+    <!-- Header -->
+    <header class="diary-header">
+      <div class="header-content">
+        <span class="header-kicker">Personal Journal</span>
+        <h1 class="page-title">The Diary Archive</h1>
+        <p class="page-description">
+          Unfiltered fragments, early morning tea observations, and thoughts written down before the world begins to rush.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button 
+          type="button" 
+          id="diary-lock-btn" 
+          class="diary-vault-lock-btn" 
+          title="Lock Diary"
+          style="display: none;"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>Lock Diary</span>
+        </button>
+
+        <button 
+          type="button" 
+          id="diary-page-write-btn" 
+          class="log-entry-btn" 
+          data-author-only
+          onclick="document.getElementById('open-writer-btn').click()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span>Log New Entry</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Locked State Vault Screen -->
+    <div id="diary-vault-lock-screen" class="diary-lock-screen" style="display: none;">
+      <div class="vault-card animate-fade-in" id="vault-card">
+        <div class="vault-icon-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <span class="vault-kicker">Protected Journal</span>
+        <h2 class="vault-title">Diary is Locked</h2>
+        <p class="vault-desc">
+          This personal journal contains private, unfiltered fragments. Please enter the passkey to unlock and read entries.
+        </p>
+
+        <form id="vault-unlock-form" class="vault-form" onsubmit="return false;">
+          <div class="vault-input-wrap">
+            <svg class="vault-input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input 
+              type="password" 
+              id="vault-passkey-input" 
+              placeholder="Enter passkey..." 
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" id="vault-toggle-visibility" class="vault-eye-btn" title="Toggle visibility" aria-label="Toggle password visibility">
+              <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" id="vault-submit-btn" class="vault-submit-btn">
+            <span>Unlock Journal</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <div id="vault-feedback" class="vault-feedback" style="display: none;"></div>
+        </form>
+
+        <div class="vault-footer">
+          <span>Private archive for Alok Mahapatra</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unlocked State Container -->
+    <div id="diary-unlocked-content" style="display: none;">
+      <!-- Filter & Search Toolbar -->
+      <div class="diary-toolbar">
+        <div class="mood-filters" id="mood-filters">
+          {moods.map((m, idx) => (
+            <button 
+              type="button" 
+              class={`mood-pill ${idx === 0 ? 'active' : ''}`} 
+              data-mood={m}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
+
+        <div class="diary-search">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input 
+            type="text" 
+            id="diary-search-input" 
+            placeholder="Search journal reflections..." 
+            aria-label="Search diary entries"
+          />
+        </div>
+      </div>
+
+      <!-- Container for dynamic entries + static entries -->
+      <div id="diary-feed" class="diary-feed" data-static-entries={JSON.stringify(diaryEntries)}>
+        <!-- Rendered via client script to incorporate localStorage saved entries seamlessly -->
+      </div>
+
+      <div id="no-diary-entries" class="no-results" style="display: none;">
+        <p>No diary entries found matching this mood or search query.</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .diary-page-container {
+    padding-top: 3.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .diary-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-light);
+    flex-wrap: wrap;
+  }
+
+  .header-kicker {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+
+  .page-description {
+    font-family: var(--font-serif);
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    max-width: 580px;
+    line-height: 1.65;
+  }
+
+  .log-entry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--accent-terra);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+  }
+
+  .log-entry-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .diary-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .mood-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .mood-pill {
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    transition: all 0.15s ease;
+  }
+
+  .mood-pill:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .mood-pill.active {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+  }
+
+  .diary-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.85rem;
+    min-width: 260px;
+    color: var(--text-muted);
+  }
+
+  .diary-search input {
+    border: none;
+    background: transparent;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+  }
+
+  .diary-search:focus-within {
+    border-color: var(--accent-terra);
+  }
+
+  .diary-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  :global(.diary-card) {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  :global(.diary-card:hover) {
+    border-color: var(--border-strong);
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  :global(.diary-card-header) {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  :global(.diary-meta-block) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  :global(.diary-date-title) {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  :global(.diary-context-line) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  :global(.diary-badges) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  :global(.diary-entry-title) {
+    font-size: 1.45rem;
+    font-weight: 500;
+    margin-bottom: 0.65rem;
+    color: var(--text-primary);
+  }
+
+  :global(.diary-entry-title a:hover) {
+    color: var(--accent-terra);
+  }
+
+  :global(.diary-snippet) {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  :global(.diary-card-footer) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-light);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  :global(.diary-footer-left) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.diary-author-actions) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  :global(.card-action-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+  }
+
+  :global(.card-action-btn:hover) {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  :global(.card-action-btn.delete-diary-action:hover) {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.4);
+    background-color: rgba(229, 62, 62, 0.06);
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3.5rem 1rem;
+    color: var(--text-muted);
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
+
+  @media (max-width: 640px) {
+    .diary-toolbar {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .diary-search {
+      min-width: unset;
+      width: 100%;
+    }
+    :global(.diary-card) {
+      padding: 1.5rem;
+    }
+    .page-title {
+      font-size: 2.1rem;
+    }
+  }
+
+  /* Diary Vault Lock Screen */
+  .diary-vault-lock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.95rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    background-color: var(--bg-card);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .diary-vault-lock-btn:hover {
+    color: var(--accent-terra);
+    border-color: var(--accent-terra);
+    background-color: var(--bg-subtle);
+  }
+
+  .diary-lock-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1rem 5rem;
+    width: 100%;
+  }
+
+  .vault-card {
+    width: 100%;
+    max-width: 440px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2.75rem 2.25rem;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .vault-icon-circle {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(158, 86, 56, 0.2);
+  }
+
+  .vault-kicker {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .vault-title {
+    font-size: 1.85rem;
+    font-weight: 500;
+    margin-bottom: 0.65rem;
+    color: var(--text-primary);
+  }
+
+  .vault-desc {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+  }
+
+  .vault-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .vault-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .vault-input-icon {
+    position: absolute;
+    left: 0.95rem;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .vault-input-wrap input {
+    width: 100%;
+    padding: 0.8rem 2.75rem 0.8rem 2.75rem;
+    font-size: 0.95rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .vault-input-wrap input:focus {
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 3px rgba(158, 86, 56, 0.12);
+  }
+
+  .vault-eye-btn {
+    position: absolute;
+    right: 0.85rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    transition: color 0.15s ease;
+  }
+
+  .vault-eye-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .vault-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.25rem;
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .vault-submit-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .vault-feedback {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+  }
+
+  .vault-feedback.error {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: #e53e3e;
+    border: 1px solid rgba(229, 62, 62, 0.25);
+  }
+
+  .vault-feedback.success {
+    background-color: rgba(56, 161, 105, 0.1);
+    color: #38a169;
+    border: 1px solid rgba(56, 161, 105, 0.25);
+  }
+
+  .vault-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--border-light);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+
+  .vault-card.shake {
+    animation: shake 0.4s ease;
+    border-color: rgba(229, 62, 62, 0.6);
+  }
+</style>
+
+<script>
+  import { isSupabaseConfigured, getSupabaseDiaryEntries, deleteSupabaseDiaryEntry } from '../../lib/supabase';
+  import { isDiaryUnlocked, unlockDiary, lockDiary } from '../../lib/diaryLock';
+
+  async function setupDiaryFeed() {
+    const lockScreen = document.getElementById('diary-vault-lock-screen');
+    const unlockedContent = document.getElementById('diary-unlocked-content');
+    const lockBtn = document.getElementById('diary-lock-btn');
+    const feed = document.getElementById('diary-feed');
+
+    const unlocked = isDiaryUnlocked();
+
+    if (!unlocked) {
+      if (lockScreen) lockScreen.style.display = 'flex';
+      if (unlockedContent) unlockedContent.style.display = 'none';
+      if (lockBtn) lockBtn.style.display = 'none';
+
+      const unlockForm = document.getElementById('vault-unlock-form') as HTMLFormElement;
+      const passInput = document.getElementById('vault-passkey-input') as HTMLInputElement;
+      const toggleVisBtn = document.getElementById('vault-toggle-visibility');
+      const feedback = document.getElementById('vault-feedback');
+      const vaultCard = document.getElementById('vault-card');
+
+      if (passInput) {
+        passInput.value = '';
+        setTimeout(() => passInput.focus(), 150);
+      }
+
+      if (toggleVisBtn && passInput) {
+        toggleVisBtn.onclick = () => {
+          const isPass = passInput.type === 'password';
+          passInput.type = isPass ? 'text' : 'password';
+        };
+      }
+
+      if (unlockForm && passInput) {
+        unlockForm.onsubmit = (e) => {
+          e.preventDefault();
+          const pass = passInput.value;
+          const ok = unlockDiary(pass);
+          if (ok) {
+            if (feedback) {
+              feedback.className = 'vault-feedback success';
+              feedback.textContent = 'Passkey accepted. Opening journal...';
+              feedback.style.display = 'block';
+            }
+            setTimeout(() => {
+              setupDiaryFeed();
+            }, 250);
+          } else {
+            if (feedback) {
+              feedback.className = 'vault-feedback error';
+              feedback.textContent = 'Incorrect passkey. Please try again.';
+              feedback.style.display = 'block';
+            }
+            if (vaultCard) {
+              vaultCard.classList.remove('shake');
+              void vaultCard.offsetWidth;
+              vaultCard.classList.add('shake');
+            }
+            passInput.select();
+          }
+        };
+      }
+      return;
+    }
+
+    // Unlocked view
+    if (lockScreen) lockScreen.style.display = 'none';
+    if (unlockedContent) unlockedContent.style.display = 'block';
+    if (lockBtn) {
+      lockBtn.style.display = 'inline-flex';
+      lockBtn.onclick = () => {
+        lockDiary();
+        setupDiaryFeed();
+      };
+    }
+
+    if (!feed) return;
+
+    let entriesFromDb = [];
+    if (isSupabaseConfigured()) {
+      try {
+        const rows = await getSupabaseDiaryEntries();
+        entriesFromDb = rows.map((r: any) => ({
+          id: r.id,
+          slug: r.slug,
+          title: r.title,
+          date: new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+          timeOfDay: r.time_of_day || '',
+          location: r.location || '',
+          weather: r.weather || '',
+          mood: r.mood || 'Reflective',
+          moodEmoji: r.mood_emoji || '🌧️',
+          readTime: r.read_time || '2 min',
+          content: r.content || [],
+          isCustom: false
+        }));
+      } catch (e) {
+        console.error('Error fetching Supabase diary entries:', e);
+      }
+    }
+
+    // Load custom entries from localStorage if offline
+    let customEntries = [];
+    try {
+      const stored = localStorage.getItem('custom_diary_entries');
+      if (stored) customEntries = JSON.parse(stored);
+    } catch (e) {}
+
+    const allEntries = [...entriesFromDb, ...customEntries];
+
+    const moodPills = document.querySelectorAll('.mood-pill');
+    const searchInput = document.getElementById('diary-search-input') as HTMLInputElement;
+    const noResults = document.getElementById('no-diary-entries');
+
+    let activeMood = 'All';
+    let searchQuery = '';
+
+    function renderFeed() {
+      const filtered = allEntries.filter(entry => {
+        const matchesMood = activeMood === 'All' || entry.mood.toLowerCase() === activeMood.toLowerCase();
+        const contentStr = (entry.content || []).join(' ').toLowerCase();
+        const matchesSearch = !searchQuery || 
+          entry.title.toLowerCase().includes(searchQuery) || 
+          contentStr.includes(searchQuery) ||
+          (entry.location || '').toLowerCase().includes(searchQuery);
+
+        return matchesMood && matchesSearch;
+      });
+
+      if (allEntries.length === 0) {
+        feed.innerHTML = `
+          <div class="empty-state-card" style="padding: 4rem 1.5rem; text-align: center; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background-color: var(--bg-card);">
+            <p style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0.5rem;">No diary entries logged yet.</p>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">Begin your journal by recording today's thoughts.</p>
+            <button type="button" class="log-entry-btn" data-author-only onclick="document.getElementById('open-writer-btn').click()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+              <span>Write First Entry</span>
+            </button>
+          </div>
+        `;
+        if (noResults) noResults.style.display = 'none';
+        return;
+      }
+
+      if (filtered.length === 0) {
+        feed.innerHTML = '';
+        if (noResults) noResults.style.display = 'block';
+        return;
+      }
+
+      if (noResults) noResults.style.display = 'none';
+
+      feed.innerHTML = filtered.map(entry => {
+        const firstPara = (entry.content && entry.content.length > 0) ? entry.content[0] : '';
+        const snippet = firstPara.length > 200 ? firstPara.slice(0, 200).trim() + '...' : firstPara;
+
+        return `
+          <article class="diary-card animate-fade-in" id="entry-${entry.id}">
+            <div class="diary-card-header">
+              <div class="diary-meta-block">
+                <span class="diary-date-title">${escapeHtml(entry.date)}</span>
+                <div class="diary-context-line">
+                  <span>${escapeHtml(entry.timeOfDay)}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(entry.location)}</span>
+                  <span>•</span>
+                  <span>${escapeHtml(entry.weather)}</span>
+                </div>
+              </div>
+
+              <div class="diary-badges">
+                <span class="tag tag-mood">${entry.moodEmoji || '🌧️'} ${escapeHtml(entry.mood)}</span>
+                <div class="diary-author-actions" data-author-only>
+                  <button type="button" class="card-action-btn edit-diary-action" data-entry-id="${entry.id}" title="Edit entry">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    <span>Edit</span>
+                  </button>
+                  <button type="button" class="card-action-btn delete-diary-action" data-entry-id="${entry.id}" data-entry-title="${escapeHtml(entry.title)}" data-is-custom="${entry.isCustom ? 'true' : 'false'}" title="Delete entry">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <h2 class="diary-entry-title">
+              <a href="/diary-entry?slug=${entry.slug}">${escapeHtml(entry.title)}</a>
+            </h2>
+
+            ${snippet ? `<p class="diary-snippet">${escapeHtml(snippet)}</p>` : ''}
+
+            <div class="diary-card-footer">
+              <div class="diary-footer-left">
+                <span>Estimated reading: ${escapeHtml(entry.readTime)}</span>
+              </div>
+              <a href="/diary-entry?slug=${entry.slug}" class="entry-link" style="color: var(--accent-terra); font-weight: 500;">
+                Read entry &rarr;
+              </a>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Wire edit buttons
+      feed.querySelectorAll('.edit-diary-action').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLElement;
+          const id = target.dataset.entryId;
+          const found = allEntries.find((item: any) => item.id === id);
+          if (found && typeof (window as any).openDiaryEditor === 'function') {
+            (window as any).openDiaryEditor(found);
+          }
+        });
+      });
+
+      // Wire delete buttons
+      feed.querySelectorAll('.delete-diary-action').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const target = e.currentTarget as HTMLElement;
+          const id = target.dataset.entryId;
+          const title = target.dataset.entryTitle || 'this entry';
+          const isCustom = target.dataset.isCustom === 'true';
+          if (!id) return;
+
+          if (confirm(`Are you sure you want to delete "${title}"? This cannot be undone.`)) {
+            try {
+              if (isSupabaseConfigured() && !isCustom) {
+                await deleteSupabaseDiaryEntry(id);
+              } else {
+                const currentCustom = JSON.parse(localStorage.getItem('custom_diary_entries') || '[]');
+                const updated = currentCustom.filter((item: any) => item.id !== id);
+                localStorage.setItem('custom_diary_entries', JSON.stringify(updated));
+              }
+              await setupDiaryFeed();
+            } catch (err: any) {
+              alert('Failed to delete diary entry: ' + (err.message || err));
+            }
+          }
+        });
+      });
+    }
+
+    function escapeHtml(str: string) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    moodPills.forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        moodPills.forEach(p => p.classList.remove('active'));
+        const target = e.currentTarget as HTMLElement;
+        target.classList.add('active');
+        activeMood = target.dataset.mood || 'All';
+        renderFeed();
+      });
+    });
+
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      renderFeed();
+    });
+
+    renderFeed();
+  }
+
+  setupDiaryFeed();
+  window.addEventListener('diary_lock_changed', setupDiaryFeed);
+  document.addEventListener('astro:after-swap', setupDiaryFeed);
+</script>

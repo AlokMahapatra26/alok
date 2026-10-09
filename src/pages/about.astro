@@ -1,0 +1,239 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="About — Alok Mahapatra"
+  description="About this personal journal and stories archive."
+  activePath="/about"
+>
+  <div class="content-container about-page">
+    <header class="about-header">
+      <span class="header-kicker">Author & Journal</span>
+      <h1 class="page-title">About</h1>
+      <p class="page-subtitle">A digital journal dedicated to personal reflections, stories, and reader conversations.</p>
+    </header>
+
+    <div class="divider"></div>
+
+    <section class="prose about-prose">
+      <p class="drop-cap">
+        Welcome. This website is a personal space for logging thoughts, documenting experiences, and sharing stories without algorithmic distractions.
+      </p>
+
+      <h2>The Diary</h2>
+      <p>
+        The diary is for day-to-day observations, moods, and personal reflections recorded by Alok Mahapatra.
+      </p>
+
+      <h2>Stories & Reflections</h2>
+      <p>
+        Each story has a dedicated reader reflection area below it, allowing readers to share thoughts, reactions, and join the conversation.
+      </p>
+
+      <h2>Colophon</h2>
+      <p>
+        Built with <a href="https://astro.build" target="_blank" rel="noopener noreferrer">Astro</a> with minimal, vanilla styling and typography designed for comfortable reading.
+      </p>
+    </section>
+
+    <!-- Letterbox Card -->
+    <section class="letterbox-card">
+      <div class="card-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        <h3>Send a Note</h3>
+      </div>
+      <p class="card-desc">
+        Feel free to send a private message or feedback.
+      </p>
+
+      <form id="letterbox-form" class="letterbox-form">
+        <div class="form-grid">
+          <input type="text" id="letter-name" placeholder="Your Name" required />
+          <input type="email" id="letter-email" placeholder="Your Email Address" required />
+        </div>
+        <textarea id="letter-message" rows="4" placeholder="Your message..." required></textarea>
+        <button type="submit" class="send-btn">
+          <span>Send Note</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+      <div id="letter-feedback" class="letter-feedback" style="display: none;"></div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    padding-top: 3.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .about-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .header-kicker {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-title {
+    font-size: 2.65rem;
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.02em;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-serif);
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  .divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin-bottom: 2.5rem;
+  }
+
+  .about-prose {
+    margin-bottom: 4rem;
+  }
+
+  .about-prose a {
+    color: var(--accent-terra);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .letterbox-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 2.25rem;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-terra);
+  }
+
+  .card-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.35rem;
+    color: var(--text-primary);
+  }
+
+  .card-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  .letterbox-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .letterbox-form input,
+  .letterbox-form textarea {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .letterbox-form input:focus,
+  .letterbox-form textarea:focus {
+    border-color: var(--accent-terra);
+  }
+
+  .send-btn {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.35rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+  }
+
+  .send-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .letter-feedback {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(61, 97, 77, 0.1);
+    color: var(--accent-sage);
+    border: 1px solid rgba(61, 97, 77, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+  }
+
+  @media (max-width: 640px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .letterbox-card {
+      padding: 1.5rem;
+    }
+  }
+</style>
+
+<script>
+  function setupLetterbox() {
+    const form = document.getElementById('letterbox-form') as HTMLFormElement;
+    const feedback = document.getElementById('letter-feedback');
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = (document.getElementById('letter-name') as HTMLInputElement)?.value;
+      
+      form.reset();
+      if (feedback) {
+        feedback.textContent = `Thank you, ${name}. Your note has been sent.`;
+        feedback.style.display = 'block';
+        setTimeout(() => {
+          feedback.style.display = 'none';
+        }, 5000);
+      }
+    });
+  }
+
+  setupLetterbox();
+  document.addEventListener('astro:after-swap', setupLetterbox);
+</script>

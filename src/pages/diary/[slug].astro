@@ -1,0 +1,294 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { diaryEntries, type DiaryEntry } from '../../data/diary';
+
+export function getStaticPaths() {
+  return diaryEntries.map((entry, index) => {
+    const prevEntry = index > 0 ? diaryEntries[index - 1] : null;
+    const nextEntry = index < diaryEntries.length - 1 ? diaryEntries[index + 1] : null;
+    return {
+      params: { slug: entry.slug },
+      props: { entry, prevEntry, nextEntry },
+    };
+  });
+}
+
+interface Props {
+  entry: DiaryEntry;
+  prevEntry: DiaryEntry | null;
+  nextEntry: DiaryEntry | null;
+}
+
+const { entry, prevEntry, nextEntry } = Astro.props;
+---
+
+<BaseLayout
+  title={`${entry.title} — Diary Log`}
+  description={entry.content[0]}
+  activePath="/diary"
+>
+  <article class="content-container diary-reader-page">
+    <div class="diary-toolbar">
+      <a href="/diary" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Diary Archive</span>
+      </a>
+
+      <button type="button" class="write-prompt-btn" data-author-only onclick="document.getElementById('open-writer-btn').click()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
+        <span>Log Your Entry</span>
+      </button>
+    </div>
+
+    <!-- Diary Header -->
+    <header class="entry-header">
+      <div class="header-meta">
+        <span class="tag tag-mood">{entry.moodEmoji} {entry.mood}</span>
+        <span class="meta-dot">•</span>
+        <span class="meta-text">{entry.readTime} read</span>
+      </div>
+
+      <h1 class="entry-title">{entry.title}</h1>
+
+      <div class="entry-details-box">
+        <div class="detail-row">
+          <span class="label">Date:</span>
+          <span class="val">{entry.date}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Time:</span>
+          <span class="val">{entry.timeOfDay}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Location:</span>
+          <span class="val">{entry.location}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Atmosphere:</span>
+          <span class="val">{entry.weather}</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="entry-divider"></div>
+
+    <!-- Entry Content -->
+    <div class="prose entry-content">
+      {entry.content.map((para) => (
+        <p>{para}</p>
+      ))}
+    </div>
+
+    <!-- Footer Nav -->
+    <footer class="entry-footer">
+      <div class="end-symbol">✦</div>
+
+      <nav class="entry-nav" aria-label="Adjacent Journal Entries">
+        {prevEntry ? (
+          <a href={`/diary/${prevEntry.slug}`} class="prev-entry-link">
+            <span class="nav-dir">&larr; Earlier Entry</span>
+            <span class="nav-name">{prevEntry.title}</span>
+          </a>
+        ) : <div />}
+
+        {nextEntry && (
+          <a href={`/diary/${nextEntry.slug}`} class="next-entry-link">
+            <span class="nav-dir">Later Entry &rarr;</span>
+            <span class="nav-name">{nextEntry.title}</span>
+          </a>
+        )}
+      </nav>
+    </footer>
+  </article>
+</BaseLayout>
+
+<style>
+  .diary-reader-page {
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .diary-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+  }
+
+  .back-link:hover {
+    color: var(--accent-terra);
+  }
+
+  .write-prompt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    transition: all 0.15s ease;
+  }
+
+  .write-prompt-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .entry-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .meta-dot {
+    color: var(--text-faint);
+  }
+
+  .meta-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .entry-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-details-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 1.5rem;
+    padding: 1.25rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .val {
+    color: var(--text-primary);
+  }
+
+  .entry-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin-bottom: 2.5rem;
+  }
+
+  .entry-content {
+    margin-bottom: 4rem;
+  }
+
+  .entry-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .end-symbol {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .entry-nav {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border-light);
+  }
+
+  .prev-entry-link,
+  .next-entry-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 260px;
+  }
+
+  .next-entry-link {
+    text-align: right;
+    margin-left: auto;
+  }
+
+  .nav-dir {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .nav-name {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: color 0.15s ease;
+  }
+
+  .nav-name:hover {
+    color: var(--accent-terra);
+  }
+
+  @media (max-width: 640px) {
+    .entry-details-box {
+      grid-template-columns: 1fr;
+    }
+    .entry-title {
+      font-size: 2rem;
+    }
+    .entry-nav {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .next-entry-link {
+      text-align: left;
+      margin-left: 0;
+    }
+  }
+</style>

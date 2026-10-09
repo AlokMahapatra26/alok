@@ -1,0 +1,681 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StoryComments from '../components/StoryComments.astro';
+---
+
+<BaseLayout
+  title="Story Reader — Alok Mahapatra"
+  description="Read story and reader reflections."
+  activePath="/stories"
+>
+  <div id="reading-progress" class="reading-progress-bar" aria-hidden="true"></div>
+
+  <article class="content-container story-reader-page" id="story-reader-container">
+    <div class="reader-toolbar">
+      <a href="/stories" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Stories</span>
+      </a>
+
+      <div class="toolbar-right-group">
+        <!-- Author Actions -->
+        <div class="author-story-actions" id="author-story-actions" data-author-only style="display: none;">
+          <button type="button" class="author-act-btn edit-act-btn" id="edit-story-btn" title="Edit this story">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="author-act-btn delete-act-btn" id="delete-story-btn" title="Delete this story">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Delete</span>
+          </button>
+        </div>
+
+        <div class="reader-controls">
+          <button type="button" id="font-toggle-btn" class="ctrl-btn" title="Toggle Serif / Sans">
+            <span class="ctrl-label">Font</span>
+          </button>
+          <button type="button" id="font-smaller-btn" class="ctrl-btn" title="Decrease font size">
+            <span>A-</span>
+          </button>
+          <button type="button" id="font-larger-btn" class="ctrl-btn" title="Increase font size">
+            <span>A+</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="story-loading" class="loading-state">
+      <p>Opening story...</p>
+    </div>
+
+    <div id="story-article-wrapper" style="display: none;">
+      <header class="story-article-header">
+        <div class="header-meta">
+          <span class="tag" id="story-category-tag">Story</span>
+          <span class="meta-dot">•</span>
+          <span class="meta-text" id="story-readtime-text">5 min read</span>
+          <span class="meta-dot">•</span>
+          <time class="meta-text" id="story-date-text"></time>
+        </div>
+
+        <h1 class="article-title" id="story-title-display"></h1>
+        <p class="article-subtitle" id="story-subtitle-display"></p>
+
+        <div class="author-line">
+          <div class="author-avatar">AM</div>
+          <div class="author-details">
+            <span class="author-name">Alok Mahapatra</span>
+            <span class="author-role">Author</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Story Thumbnail / Cover Image Banner -->
+      <div id="story-cover-banner" class="story-cover-banner" style="display: none;">
+        <img id="story-cover-img" src="" alt="Story Cover" class="story-cover-img" />
+      </div>
+
+      <div class="article-divider"></div>
+
+      <div id="story-body" class="prose story-content">
+        <!-- Rendered paragraphs -->
+      </div>
+
+      <footer class="story-article-footer">
+        <div class="end-mark">
+          <span>❖</span>
+        </div>
+        <p class="signoff-note">
+          If this story resonated with you, feel free to share your thoughts in the reflections below.
+        </p>
+      </footer>
+
+      <!-- Dynamic comments component placeholder -->
+      <div id="story-comments-wrapper"></div>
+    </div>
+
+    <div id="story-not-found" class="not-found-state" style="display: none;">
+      <h2>Story Not Found</h2>
+      <p>The requested story could not be located.</p>
+      <a href="/stories" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Return to Stories</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .reading-progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background-color: var(--accent-terra);
+    width: 0%;
+    z-index: 999;
+    transition: width 0.1s ease-out;
+  }
+
+  .story-reader-page {
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .reader-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .back-link:hover {
+    color: var(--accent-terra);
+  }
+
+  .toolbar-right-group {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  .author-story-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .author-act-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+
+  .author-act-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .author-act-btn.delete-act-btn:hover {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.4);
+    background-color: rgba(229, 62, 62, 0.06);
+  }
+
+  .reader-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .ctrl-btn {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    padding: 0.3rem 0.55rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    transition: all 0.15s ease;
+  }
+
+  .ctrl-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .loading-state,
+  .not-found-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    font-family: var(--font-serif);
+    color: var(--text-muted);
+  }
+
+  .story-article-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-dot {
+    color: var(--text-faint);
+  }
+
+  .meta-text {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .article-title {
+    font-size: 2.65rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+  }
+
+  .article-subtitle {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 2rem;
+  }
+
+  .author-line {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .author-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-strong);
+    color: var(--accent-terra);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .author-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .author-name {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+  }
+
+  .author-role {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .story-cover-banner {
+    width: 100%;
+    max-height: 440px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--card-shadow);
+    background-color: var(--bg-secondary);
+  }
+
+  .story-cover-img {
+    width: 100%;
+    height: 100%;
+    max-height: 440px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .article-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin-bottom: 2.5rem;
+  }
+
+  .story-content {
+    margin-bottom: 3.5rem;
+  }
+
+  .story-article-footer {
+    padding-top: 2.5rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .end-mark {
+    text-align: center;
+    font-size: 1.2rem;
+    color: var(--accent-terra);
+    margin-bottom: 1.5rem;
+  }
+
+  .signoff-note {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto 3rem auto;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 640px) {
+    .article-title {
+      font-size: 2.1rem;
+    }
+  }
+</style>
+
+<script>
+  import { isSupabaseConfigured, supabase, deleteSupabaseStory } from '../lib/supabase';
+
+  async function initDynamicStoryReader() {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+
+    const loading = document.getElementById('story-loading');
+    const wrapper = document.getElementById('story-article-wrapper');
+    const notFound = document.getElementById('story-not-found');
+    const authorActions = document.getElementById('author-story-actions');
+    const editBtn = document.getElementById('edit-story-btn');
+    const deleteBtn = document.getElementById('delete-story-btn');
+
+    if (!slug) {
+      if (loading) loading.style.display = 'none';
+      if (notFound) notFound.style.display = 'block';
+      return;
+    }
+
+    let story: any = null;
+
+    // 1. Fetch from Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('stories')
+          .select('*')
+          .eq('slug', slug)
+          .single();
+
+        if (!error && data) {
+          let coverImage = data.cover_image || '';
+          let content = data.content || [];
+          if (!coverImage && content.length > 0 && typeof content[0] === 'string' && content[0].startsWith('__COVER__:')) {
+            coverImage = content[0].replace('__COVER__:', '').trim();
+            content = content.slice(1);
+          }
+
+          story = {
+            id: data.id,
+            slug: data.slug,
+            title: data.title,
+            subtitle: data.subtitle || '',
+            excerpt: data.excerpt || '',
+            category: data.category || 'Story',
+            readTime: data.read_time || '5 min',
+            date: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+            cover_image: coverImage,
+            content
+          };
+        }
+      } catch (e) {}
+    }
+
+    // 2. Fallback to localStorage
+    if (!story) {
+      try {
+        const local = JSON.parse(localStorage.getItem('custom_stories') || '[]');
+        const found = local.find((s: any) => s.slug === slug);
+        if (found) {
+          let coverImage = found.cover_image || found.coverImage || '';
+          let content = found.content || [];
+          if (!coverImage && content.length > 0 && typeof content[0] === 'string' && content[0].startsWith('__COVER__:')) {
+            coverImage = content[0].replace('__COVER__:', '').trim();
+            content = content.slice(1);
+          }
+          story = {
+            ...found,
+            cover_image: coverImage,
+            content
+          };
+        }
+      } catch (e) {}
+    }
+
+    if (!story) {
+      if (loading) loading.style.display = 'none';
+      if (notFound) notFound.style.display = 'block';
+      return;
+    }
+
+    // Populate data
+    document.title = `${story.title} — Alok Mahapatra`;
+    const titleEl = document.getElementById('story-title-display');
+    const subEl = document.getElementById('story-subtitle-display');
+    const catEl = document.getElementById('story-category-tag');
+    const timeEl = document.getElementById('story-readtime-text');
+    const dateEl = document.getElementById('story-date-text');
+    const bodyEl = document.getElementById('story-body');
+    const coverBanner = document.getElementById('story-cover-banner');
+    const coverImg = document.getElementById('story-cover-img') as HTMLImageElement;
+
+    if (titleEl) titleEl.textContent = story.title;
+    if (subEl) subEl.textContent = story.subtitle || '';
+    if (catEl) catEl.textContent = story.category;
+    if (timeEl) timeEl.textContent = story.readTime;
+    if (dateEl) dateEl.textContent = story.date;
+
+    if (coverBanner && coverImg) {
+      if (story.cover_image) {
+        coverImg.src = story.cover_image;
+        coverBanner.style.display = 'block';
+      } else {
+        coverBanner.style.display = 'none';
+      }
+    }
+
+    if (bodyEl) {
+      bodyEl.innerHTML = (story.content || []).map((p: string, idx: number) => `
+        <p class="${idx === 0 ? 'drop-cap' : ''}">${escapeHtml(p)}</p>
+      `).join('');
+    }
+
+    // Embed comments section
+    const commentsWrapper = document.getElementById('story-comments-wrapper');
+    if (commentsWrapper) {
+      commentsWrapper.innerHTML = `
+        <div id="comments-section-container"></div>
+      `;
+      // Render comment UI
+      renderCommentsUI(commentsWrapper, story.slug, story.title);
+    }
+
+    if (loading) loading.style.display = 'none';
+    if (wrapper) wrapper.style.display = 'block';
+
+    // Show and wire author actions
+    if (authorActions) {
+      authorActions.style.display = 'inline-flex';
+    }
+
+    editBtn?.replaceWith(editBtn.cloneNode(true));
+    deleteBtn?.replaceWith(deleteBtn.cloneNode(true));
+
+    const newEditBtn = document.getElementById('edit-story-btn');
+    const newDeleteBtn = document.getElementById('delete-story-btn');
+
+    newEditBtn?.addEventListener('click', () => {
+      if (typeof (window as any).openStoryEditor === 'function') {
+        (window as any).openStoryEditor(story);
+      }
+    });
+
+    newDeleteBtn?.addEventListener('click', async () => {
+      const confirmDelete = confirm(`Are you sure you want to delete "${story.title}"? This cannot be undone.`);
+      if (!confirmDelete) return;
+
+      newDeleteBtn.setAttribute('disabled', 'true');
+      newDeleteBtn.textContent = 'Deleting...';
+
+      try {
+        if (isSupabaseConfigured() && story.id) {
+          await deleteSupabaseStory(story.id);
+        } else {
+          const local = JSON.parse(localStorage.getItem('custom_stories') || '[]');
+          const filtered = local.filter((s: any) => s.slug !== slug && s.id !== story.id);
+          localStorage.setItem('custom_stories', JSON.stringify(filtered));
+        }
+
+        alert('Story deleted successfully.');
+        window.location.href = '/stories';
+      } catch (err: any) {
+        alert('Failed to delete story: ' + (err.message || err));
+        newDeleteBtn.removeAttribute('disabled');
+        newDeleteBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Delete</span>
+        `;
+      }
+    });
+
+    setupReaderControls();
+  }
+
+  function escapeHtml(str: string) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function setupReaderControls() {
+    const progress = document.getElementById('reading-progress');
+    const updateProgress = () => {
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (docHeight <= 0) return;
+      const scrolled = (window.scrollY / docHeight) * 100;
+      if (progress) progress.style.width = `${Math.min(100, Math.max(0, scrolled))}%`;
+    };
+    window.addEventListener('scroll', updateProgress, { passive: true });
+
+    const storyBody = document.getElementById('story-body');
+    const fontToggle = document.getElementById('font-toggle-btn');
+    const fontSmaller = document.getElementById('font-smaller-btn');
+    const fontLarger = document.getElementById('font-larger-btn');
+
+    let isSans = false;
+    let currentFontSize = 1.15;
+
+    fontToggle?.addEventListener('click', () => {
+      isSans = !isSans;
+      if (storyBody) storyBody.style.fontFamily = isSans ? 'var(--font-sans)' : 'var(--font-serif)';
+      const label = fontToggle.querySelector('.ctrl-label');
+      if (label) label.textContent = isSans ? 'Serif' : 'Sans';
+    });
+
+    fontSmaller?.addEventListener('click', () => {
+      if (currentFontSize > 0.95) {
+        currentFontSize -= 0.1;
+        if (storyBody) storyBody.style.fontSize = `${currentFontSize}rem`;
+      }
+    });
+
+    fontLarger?.addEventListener('click', () => {
+      if (currentFontSize < 1.45) {
+        currentFontSize += 0.1;
+        if (storyBody) storyBody.style.fontSize = `${currentFontSize}rem`;
+      }
+    });
+  }
+
+  async function renderCommentsUI(container: HTMLElement, slug: string, title: string) {
+    container.innerHTML = `
+      <section class="comments-section" id="comments">
+        <div class="comments-header" style="margin-bottom: 2rem;">
+          <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.4rem;">
+            <h3 style="font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600;">Reflections & Conversation</h3>
+            <span id="dyn-comments-count" style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); padding: 0.2rem 0.55rem; border-radius: 9999px; background-color: var(--bg-subtle); border: 1px solid var(--border-light);">0 reflections</span>
+          </div>
+          <p style="font-size: 0.95rem; color: var(--text-secondary);">A quiet corner for readers to leave thoughts on <em>"${escapeHtml(title)}"</em>.</p>
+        </div>
+
+        <form id="dyn-comment-form" style="background-color: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1.5rem; margin-bottom: 2.5rem;">
+          <div style="margin-bottom: 1rem;">
+            <label style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">Your Name</label>
+            <input type="text" id="dyn-author" placeholder="e.g. Your name" required style="width: 100%; background-color: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0.75rem 0.9rem; font-size: 0.95rem; color: var(--text-primary); outline: none;" />
+          </div>
+          <div style="margin-bottom: 1rem;">
+            <label style="font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); display: block; margin-bottom: 0.4rem;">Your Reflection</label>
+            <textarea id="dyn-text" rows="3" placeholder="What did this story stir in you? A thought, observation, or memory..." required style="width: 100%; background-color: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-sm); padding: 0.75rem 0.9rem; font-size: 0.95rem; color: var(--text-primary); outline: none;"></textarea>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end;">
+            <button type="submit" style="display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.55rem 1.15rem; font-size: 0.88rem; font-weight: 500; color: var(--bg-primary); background-color: var(--text-primary); border-radius: var(--radius-sm);">Leave Reflection</button>
+          </div>
+          <div id="dyn-feedback" style="display: none; margin-top: 0.75rem; padding: 0.65rem 0.9rem; border-radius: var(--radius-sm); background-color: rgba(61,97,77,0.1); color: var(--accent-sage);"></div>
+        </form>
+
+        <div id="dyn-comments-list" style="display: flex; flex-direction: column; gap: 1.5rem;"></div>
+      </section>
+    `;
+
+    // Load & handle comments
+    const list = container.querySelector('#dyn-comments-list');
+    const badge = container.querySelector('#dyn-comments-count');
+    const form = container.querySelector('#dyn-comment-form') as HTMLFormElement;
+    const authorInput = container.querySelector('#dyn-author') as HTMLInputElement;
+    const textInput = container.querySelector('#dyn-text') as HTMLTextAreaElement;
+    const feedback = container.querySelector('#dyn-feedback') as HTMLElement;
+
+    let comments: any[] = [];
+    if (isSupabaseConfigured()) {
+      try {
+        const { data } = await supabase.from('comments').select('*').eq('story_slug', slug).order('created_at', { ascending: false });
+        comments = data || [];
+      } catch (e) {}
+    } else {
+      try {
+        comments = JSON.parse(localStorage.getItem(`comments_${slug}`) || '[]');
+      } catch (e) {}
+    }
+
+    function renderList() {
+      if (!list || !badge) return;
+      badge.textContent = `${comments.length} ${comments.length === 1 ? 'reflection' : 'reflections'}`;
+      if (comments.length === 0) {
+        list.innerHTML = `<div style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted); font-family: var(--font-serif); font-style: italic;">No reflections yet. Be the first to share your thoughts.</div>`;
+        return;
+      }
+      list.innerHTML = comments.map(c => `
+        <div style="padding: 1.35rem 1.5rem; border-radius: var(--radius-md); background-color: var(--bg-card); border: 1px solid var(--border-light);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; background-color: var(--bg-subtle); border: 1px solid var(--border-light); color: var(--accent-terra); font-weight: 600; display: flex; align-items: center; justify-content: center;">${(c.author || 'A').charAt(0).toUpperCase()}</div>
+              <span style="font-weight: 600; font-size: 0.95rem;">${escapeHtml(c.author)}</span>
+            </div>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">${c.created_at ? new Date(c.created_at).toLocaleDateString() : 'Recent'}</span>
+          </div>
+          <div style="font-family: var(--font-serif); font-size: 1.02rem; line-height: 1.65; margin-bottom: 0.75rem;">${escapeHtml(c.text)}</div>
+        </div>
+      `).join('');
+    }
+
+    renderList();
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const author = authorInput.value.trim();
+      const text = textInput.value.trim();
+      if (!author || !text) return;
+
+      if (isSupabaseConfigured()) {
+        const { data } = await supabase.from('comments').insert([{ story_slug: slug, author, text }]).select().single();
+        if (data) comments.unshift(data);
+      } else {
+        const item = { id: Date.now().toString(), author, text, created_at: new Date().toISOString() };
+        comments.unshift(item);
+        localStorage.setItem(`comments_${slug}`, JSON.stringify(comments));
+      }
+
+      textInput.value = '';
+      if (feedback) {
+        feedback.textContent = 'Thank you for your reflection.';
+        feedback.style.display = 'block';
+        setTimeout(() => { feedback.style.display = 'none'; }, 4000);
+      }
+      renderList();
+    });
+  }
+
+  initDynamicStoryReader();
+  document.addEventListener('astro:after-swap', initDynamicStoryReader);
+</script>

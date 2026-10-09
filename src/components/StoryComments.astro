@@ -1,0 +1,539 @@
+---
+import type { Comment } from '../data/stories';
+
+interface Props {
+  storySlug: string;
+  storyTitle: string;
+  initialComments?: Comment[];
+}
+
+const { storySlug, storyTitle, initialComments = [] } = Astro.props;
+---
+
+<section class="comments-section" id="comments" data-slug={storySlug} data-initial={JSON.stringify(initialComments)}>
+  <div class="comments-header">
+    <div class="header-titles">
+      <h3 class="section-title">Reflections & Conversation</h3>
+      <span class="comments-count" id="comments-count-badge">0 reflections</span>
+    </div>
+    <p class="section-subtitle">
+      A quiet corner for readers to leave thoughts on <em>"{storyTitle}"</em>.
+    </p>
+  </div>
+
+  <!-- New Comment Form -->
+  <form id="comment-form" class="comment-form">
+    <div class="form-row">
+      <div class="input-group">
+        <label for="comment-author">Your Name</label>
+        <input 
+          type="text" 
+          id="comment-author" 
+          placeholder="e.g. Your name" 
+          required 
+          maxlength="60"
+        />
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="comment-body">Your Reflection</label>
+      <textarea 
+        id="comment-body" 
+        rows="3" 
+        placeholder="What did this story stir in you? A thought, observation, or memory..." 
+        required 
+        maxlength="1000"
+      ></textarea>
+    </div>
+
+    <div class="form-actions">
+      <span class="char-count" id="char-count">0 / 1000</span>
+      <button type="submit" class="submit-btn" id="submit-comment-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+        <span>Leave Reflection</span>
+      </button>
+    </div>
+
+    <div id="form-feedback" class="form-feedback" style="display: none;"></div>
+  </form>
+
+  <!-- Comment List -->
+  <div class="comments-list-wrapper">
+    <div id="comments-container" class="comments-container">
+      <!-- Injected via JavaScript -->
+    </div>
+  </div>
+</section>
+
+<style>
+  .comments-section {
+    margin-top: 4.5rem;
+    padding-top: 3rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .comments-header {
+    margin-bottom: 2rem;
+  }
+
+  .header-titles {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .section-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .comments-count {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+  }
+
+  .section-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .comment-form {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 2.5rem;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 1rem;
+  }
+
+  .input-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+
+  .input-group input,
+  .input-group textarea {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.9rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input-group input:focus,
+  .input-group textarea:focus {
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 2px rgba(158, 86, 56, 0.15);
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.25rem;
+  }
+
+  .char-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .submit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+  }
+
+  .submit-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .form-feedback {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.9rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+  }
+
+  .form-feedback.success {
+    background-color: rgba(61, 97, 77, 0.1);
+    color: var(--accent-sage);
+    border: 1px solid rgba(61, 97, 77, 0.2);
+  }
+
+  .comments-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  :global(.comment-card) {
+    padding: 1.35rem 1.5rem;
+    border-radius: var(--radius-md);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--card-shadow);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  :global(.comment-card:hover) {
+    border-color: var(--border-strong);
+  }
+
+  :global(.comment-meta) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+  }
+
+  :global(.comment-author-info) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  :global(.comment-avatar) {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    color: var(--accent-terra);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+  }
+
+  :global(.comment-author-name) {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  :global(.comment-date) {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+  }
+
+  :global(.comment-body) {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--text-primary);
+    white-space: pre-line;
+    margin-bottom: 0.75rem;
+  }
+
+  :global(.comment-actions) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    border-top: 1px dashed var(--border-light);
+  }
+
+  :global(.like-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease, transform 0.15s ease;
+  }
+
+  :global(.like-btn:hover) {
+    color: var(--accent-terra);
+  }
+
+  :global(.like-btn.liked) {
+    color: var(--accent-terra);
+    font-weight: 600;
+  }
+
+  :global(.delete-btn) {
+    font-size: 0.75rem;
+    color: var(--text-faint);
+    transition: color 0.15s ease;
+  }
+
+  :global(.delete-btn:hover) {
+    color: #c53030;
+  }
+
+  :global(.no-comments) {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: var(--text-muted);
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
+</style>
+
+<script>
+  import { 
+    isSupabaseConfigured, 
+    supabase, 
+    getSupabaseComments, 
+    addSupabaseComment, 
+    likeSupabaseComment, 
+    deleteSupabaseComment 
+  } from '../lib/supabase';
+
+  async function initComments() {
+    const section = document.querySelector('.comments-section') as HTMLElement;
+    if (!section) return;
+
+    const slug = section.dataset.slug || 'default';
+    const container = document.getElementById('comments-container');
+    const badge = document.getElementById('comments-count-badge');
+    const form = document.getElementById('comment-form') as HTMLFormElement;
+    const authorInput = document.getElementById('comment-author') as HTMLInputElement;
+    const bodyInput = document.getElementById('comment-body') as HTMLTextAreaElement;
+    const charCount = document.getElementById('char-count');
+    const feedback = document.getElementById('form-feedback');
+
+    // Prepopulate author name
+    const savedAuthor = localStorage.getItem('reader_name');
+    if (savedAuthor && authorInput) authorInput.value = savedAuthor;
+
+    // Liked IDs
+    const likedKey = `liked_comments_${slug}`;
+    let likedIds = new Set<string>();
+    try {
+      const localLikes = localStorage.getItem(likedKey);
+      if (localLikes) likedIds = new Set(JSON.parse(localLikes));
+    } catch (e) {}
+
+    // Check if author is logged in
+    let isAuthor = false;
+    if (isSupabaseConfigured()) {
+      const { data: { session } } = await supabase.auth.getSession();
+      isAuthor = Boolean(session);
+    }
+
+    let comments: any[] = [];
+
+    async function loadComments() {
+      if (isSupabaseConfigured()) {
+        try {
+          const remote = await getSupabaseComments(slug);
+          comments = remote.map((c: any) => ({
+            id: c.id,
+            author: c.author,
+            text: c.text,
+            likes: c.likes || 0,
+            date: new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          }));
+        } catch (e) {
+          comments = [];
+        }
+      } else {
+        // Fallback to local storage
+        try {
+          comments = JSON.parse(localStorage.getItem(`comments_${slug}`) || '[]');
+        } catch (e) {
+          comments = [];
+        }
+      }
+      renderComments();
+    }
+
+    function renderComments() {
+      if (!container || !badge) return;
+
+      badge.textContent = `${comments.length} ${comments.length === 1 ? 'reflection' : 'reflections'}`;
+
+      if (comments.length === 0) {
+        container.innerHTML = `<div class="no-comments">No reflections yet. Be the first to share your thoughts.</div>`;
+        return;
+      }
+
+      container.innerHTML = comments.map((c: any) => {
+        const initial = (c.author || 'A').charAt(0).toUpperCase();
+        const isLiked = likedIds.has(c.id);
+
+        return `
+          <div class="comment-card animate-fade-in" id="comment-${c.id}">
+            <div class="comment-meta">
+              <div class="comment-author-info">
+                <div class="comment-avatar">${initial}</div>
+                <div>
+                  <span class="comment-author-name">${escapeHtml(c.author)}</span>
+                  <span class="comment-date">• ${escapeHtml(c.date || 'Recent')}</span>
+                </div>
+              </div>
+              ${isAuthor ? `
+                <button type="button" class="delete-btn" data-delete-id="${c.id}" title="Moderate / delete reflection">
+                  Delete
+                </button>
+              ` : ''}
+            </div>
+            <div class="comment-body">${escapeHtml(c.text)}</div>
+            <div class="comment-actions">
+              <button type="button" class="like-btn ${isLiked ? 'liked' : ''}" data-like-id="${c.id}" data-likes="${c.likes || 0}">
+                <span>${isLiked ? '♥' : '♡'}</span>
+                <span>${c.likes || 0}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      attachCardListeners();
+    }
+
+    function escapeHtml(str: string) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function attachCardListeners() {
+      container?.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const target = e.currentTarget as HTMLElement;
+          const id = target.dataset.likeId;
+          const curLikes = parseInt(target.dataset.likes || '0', 10);
+          if (!id || likedIds.has(id)) return;
+
+          likedIds.add(id);
+          localStorage.setItem(likedKey, JSON.stringify(Array.from(likedIds)));
+
+          const found = comments.find(c => c.id === id);
+          if (found) found.likes += 1;
+
+          if (isSupabaseConfigured()) {
+            await likeSupabaseComment(id, curLikes);
+          } else {
+            localStorage.setItem(`comments_${slug}`, JSON.stringify(comments));
+          }
+          renderComments();
+        });
+      });
+
+      if (isAuthor) {
+        container?.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const target = e.currentTarget as HTMLElement;
+            const id = target.dataset.deleteId;
+            if (!id || !confirm('Delete this reflection?')) return;
+
+            if (isSupabaseConfigured()) {
+              await deleteSupabaseComment(id);
+            }
+            comments = comments.filter(c => c.id !== id);
+            localStorage.setItem(`comments_${slug}`, JSON.stringify(comments));
+            renderComments();
+          });
+        });
+      }
+    }
+
+    bodyInput?.addEventListener('input', () => {
+      if (charCount) charCount.textContent = `${bodyInput.value.length} / 1000`;
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const author = authorInput.value.trim();
+      const text = bodyInput.value.trim();
+      if (!author || !text) return;
+
+      localStorage.setItem('reader_name', author);
+
+      try {
+        if (isSupabaseConfigured()) {
+          const res = await addSupabaseComment({
+            story_slug: slug,
+            author,
+            text
+          });
+          if (res) {
+            comments.unshift({
+              id: res.id,
+              author: res.author,
+              text: res.text,
+              likes: 0,
+              date: 'Just now'
+            });
+          }
+        } else {
+          const newC = {
+            id: 'c-' + Date.now(),
+            author,
+            text,
+            likes: 0,
+            date: 'Just now'
+          };
+          comments.unshift(newC);
+          localStorage.setItem(`comments_${slug}`, JSON.stringify(comments));
+        }
+
+        bodyInput.value = '';
+        if (charCount) charCount.textContent = '0 / 1000';
+
+        if (feedback) {
+          feedback.textContent = 'Thank you for your reflection. It has been shared.';
+          feedback.className = 'form-feedback success';
+          feedback.style.display = 'block';
+          setTimeout(() => { if (feedback) feedback.style.display = 'none'; }, 4000);
+        }
+
+        renderComments();
+      } catch (err: any) {
+        alert('Could not submit comment: ' + (err.message || err));
+      }
+    });
+
+    loadComments();
+  }
+
+  initComments();
+  document.addEventListener('astro:after-swap', initComments);
+</script>

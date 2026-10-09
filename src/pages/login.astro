@@ -1,0 +1,368 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Author Sign In — Alok Mahapatra"
+  description="Author access for writing diary entries and publishing stories."
+  activePath="/login"
+>
+  <div class="content-container login-page-container">
+    <div class="login-box">
+      <header class="login-header">
+        <span class="auth-kicker">Author Desk</span>
+        <h1 class="auth-title">Sign In</h1>
+        <p class="auth-subtitle">
+          Single-author workspace to write diary entries and publish stories.
+        </p>
+      </header>
+
+      <div id="env-warning" class="env-warning" style="display: none;">
+        <strong>Supabase Setup Required:</strong>
+        <p>Please provide your <code>PUBLIC_SUPABASE_URL</code> and <code>PUBLIC_SUPABASE_ANON_KEY</code> in your <code>.env</code> file, and run <code>supabase-schema.sql</code> in your Supabase SQL editor.</p>
+      </div>
+
+      <form id="author-login-form" class="auth-form">
+        <div class="form-group">
+          <label for="author-email">Email Address</label>
+          <input 
+            type="email" 
+            id="author-email" 
+            placeholder="you@domain.com" 
+            required 
+            autocomplete="email"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="author-password">Password</label>
+          <input 
+            type="password" 
+            id="author-password" 
+            placeholder="••••••••••••" 
+            required 
+            autocomplete="current-password"
+          />
+        </div>
+
+        <button 
+          type="button" 
+          id="login-submit-btn" 
+          class="login-submit-btn" 
+          onclick="window.handleAuthorLogin && window.handleAuthorLogin()"
+        >
+          <span>Sign In to Author Desk</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+
+        <div id="login-feedback" class="login-feedback" style="display: none;"></div>
+      </form>
+
+      <div class="login-footer">
+        <p>Looking to read? <a href="/stories">Browse stories</a> or <a href="/diary">read the diary</a>.</p>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .login-page-container {
+    padding-top: 5rem;
+    padding-bottom: 6rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  .login-box {
+    width: 100%;
+    max-width: 440px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    box-shadow: var(--card-shadow);
+  }
+
+  .login-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .auth-kicker {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .auth-title {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .auth-subtitle {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .env-warning {
+    background-color: rgba(158, 86, 56, 0.08);
+    border: 1px solid rgba(158, 86, 56, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .env-warning strong {
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .env-warning code {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    background-color: var(--bg-subtle);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+  }
+
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .form-group input {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-group input:focus {
+    border-color: var(--accent-terra);
+  }
+
+  .login-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--bg-primary);
+    background-color: var(--text-primary);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+    margin-top: 0.5rem;
+  }
+
+  .login-submit-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  .login-feedback {
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+  }
+
+  .login-feedback.error {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+  }
+
+  .login-feedback.success {
+    background-color: rgba(61, 97, 77, 0.1);
+    color: var(--accent-sage);
+    border: 1px solid rgba(61, 97, 77, 0.2);
+  }
+
+  .login-feedback.info {
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    border: 1px solid rgba(158, 86, 56, 0.2);
+  }
+
+  .login-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border-light);
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .login-footer a {
+    color: var(--accent-terra);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>
+
+<script>
+  import { supabase, isSupabaseConfigured, signInAuthor } from '../lib/supabase';
+
+  async function handleLogin() {
+    const emailInput = document.getElementById('author-email') as HTMLInputElement | null;
+    const passwordInput = document.getElementById('author-password') as HTMLInputElement | null;
+    const feedback = document.getElementById('login-feedback');
+    const submitBtn = document.getElementById('login-submit-btn') as HTMLButtonElement | null;
+
+    const email = emailInput?.value.trim() || '';
+    const password = passwordInput?.value || '';
+
+    if (!email || !password) {
+      if (feedback) {
+        feedback.textContent = 'Please provide both email and password.';
+        feedback.className = 'login-feedback error';
+        feedback.style.display = 'block';
+      }
+      return;
+    }
+
+    if (!isSupabaseConfigured()) {
+      if (feedback) {
+        feedback.textContent = 'Supabase credentials are not configured in .env yet.';
+        feedback.className = 'login-feedback error';
+        feedback.style.display = 'block';
+      }
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.7';
+      const label = submitBtn.querySelector('span');
+      if (label) label.textContent = 'Signing in...';
+    }
+
+    if (feedback) {
+      feedback.textContent = 'Verifying credentials with Supabase...';
+      feedback.className = 'login-feedback info';
+      feedback.style.display = 'block';
+    }
+
+    try {
+      console.log('Attempting sign in for:', email);
+      const { data, error } = await signInAuthor(email, password);
+      if (error) throw error;
+
+      if (feedback) {
+        feedback.textContent = 'Welcome back, Alok! Redirecting to workspace...';
+        feedback.className = 'login-feedback success';
+        feedback.style.display = 'block';
+      }
+
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 700);
+    } catch (err: any) {
+      console.error('Login error:', err);
+      if (feedback) {
+        let msg = err?.message || 'Failed to authenticate.';
+        if (msg.toLowerCase().includes('invalid login credentials')) {
+          msg = 'Invalid email or password. Please verify the credentials you created in Supabase.';
+        } else if (msg.toLowerCase().includes('email not confirmed')) {
+          msg = 'Email not confirmed in Supabase. Please enable "Auto Confirm User" or confirm your email in Supabase Authentication settings.';
+        }
+        feedback.textContent = msg;
+        feedback.className = 'login-feedback error';
+        feedback.style.display = 'block';
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        const label = submitBtn.querySelector('span');
+        if (label) label.textContent = 'Sign In to Author Desk';
+      }
+    }
+  }
+
+  // Attach to window so inline onclick works unconditionally
+  (window as any).handleAuthorLogin = handleLogin;
+
+  function bindLoginEvents() {
+    const warning = document.getElementById('env-warning');
+    const form = document.getElementById('author-login-form');
+    const submitBtn = document.getElementById('login-submit-btn');
+    const emailInput = document.getElementById('author-email');
+    const passwordInput = document.getElementById('author-password');
+
+    if (warning && !isSupabaseConfigured()) {
+      warning.style.display = 'block';
+    }
+
+    if (submitBtn) {
+      submitBtn.onclick = (e) => {
+        e.preventDefault();
+        handleLogin();
+      };
+    }
+
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        handleLogin();
+      };
+    }
+
+    [emailInput, passwordInput].forEach(input => {
+      input?.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          handleLogin();
+        }
+      });
+    });
+
+    if (isSupabaseConfigured()) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (data?.session) {
+          window.location.href = '/';
+        }
+      }).catch(err => console.warn('Session check:', err));
+    }
+  }
+
+  // Bind immediately and on load events
+  bindLoginEvents();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindLoginEvents);
+  }
+  document.addEventListener('astro:after-swap', bindLoginEvents);
+</script>

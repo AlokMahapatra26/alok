@@ -1,0 +1,573 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout 
+  title="Alok Mahapatra — Journal & Stories" 
+  description="Personal journal entries, reflections, and stories."
+  activePath="/"
+>
+  <div class="container home-container">
+    <!-- Featured Stories Section -->
+    <section class="home-section">
+      <div class="section-header">
+        <div>
+          <span class="section-kicker">Writing</span>
+          <h2 class="section-heading">Stories</h2>
+        </div>
+        <a href="/stories" class="view-all-link">
+          <span>All stories</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+
+      <div id="home-stories-list" class="stories-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- Recent Diary Entries -->
+    <section class="home-section diary-home-section">
+      <div class="section-header">
+        <div>
+          <span class="section-kicker">Journal</span>
+          <h2 class="section-heading">Recent Diary Entries</h2>
+        </div>
+        <a href="/diary" class="view-all-link">
+          <span>Open diary</span>
+          <span>&rarr;</span>
+        </a>
+      </div>
+
+      <div id="home-diary-list" class="diary-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .home-container {
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  /* Sections */
+  .home-section {
+    margin-bottom: 4.5rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .section-kicker {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .section-heading {
+    font-size: 1.75rem;
+    font-weight: 500;
+  }
+
+  .view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+  }
+
+  .view-all-link:hover {
+    color: var(--accent-terra);
+  }
+
+  /* Stories Grid */
+  .stories-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  :global(.home-story-card) {
+    padding: 2rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  :global(.home-story-card:hover) {
+    border-color: var(--border-strong);
+    box-shadow: var(--card-shadow-hover);
+    transform: translateY(-2px);
+  }
+
+  :global(.home-story-card.has-cover) {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1.75rem;
+    align-items: stretch;
+    padding: 1.5rem;
+  }
+
+  :global(.home-story-cover-wrap) {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    height: 100%;
+    min-height: 160px;
+  }
+
+  :global(.home-story-cover-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+  }
+
+  :global(.home-story-card:hover .home-story-cover-img) {
+    transform: scale(1.03);
+  }
+
+  @media (max-width: 680px) {
+    :global(.home-story-card.has-cover) {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    :global(.home-story-cover-wrap) {
+      height: 180px;
+    }
+  }
+
+  :global(.home-story-meta) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.home-story-title) {
+    font-size: 1.65rem;
+    margin-bottom: 0.4rem;
+  }
+
+  :global(.home-story-title a:hover) {
+    color: var(--accent-terra);
+  }
+
+  :global(.home-story-subtitle) {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  :global(.home-story-excerpt) {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+  }
+
+  :global(.home-story-footer) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-light);
+  }
+
+  /* Diary Feed */
+  .diary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+
+  :global(.home-diary-item) {
+    display: flex;
+    gap: 1.75rem;
+    padding: 1.5rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    transition: border-color 0.2s ease;
+  }
+
+  :global(.home-diary-item:hover) {
+    border-color: var(--border-strong);
+  }
+
+  :global(.diary-item-left) {
+    min-width: 120px;
+  }
+
+  :global(.diary-date-badge) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  :global(.diary-day) {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  :global(.diary-time) {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  :global(.diary-item-content) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  :global(.diary-item-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.diary-title) {
+    font-size: 1.2rem;
+  }
+
+  :global(.diary-title a:hover) {
+    color: var(--accent-terra);
+  }
+
+  :global(.diary-snippet) {
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  :global(.diary-item-footer) {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+
+  :global(.entry-link) {
+    margin-left: auto;
+    font-weight: 500;
+    color: var(--accent-terra);
+  }
+
+  @media (max-width: 640px) {
+    :global(.home-diary-item) {
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    :global(.diary-item-left) {
+      min-width: unset;
+    }
+    :global(.entry-link) {
+      margin-left: 0;
+    }
+  }
+
+  :global(.home-diary-locked-box) {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2.25rem 2rem;
+    background-color: var(--bg-card);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    flex-wrap: wrap;
+    transition: border-color 0.2s ease;
+  }
+
+  :global(.home-diary-locked-box:hover) {
+    border-color: var(--border-strong);
+  }
+
+  :global(.home-locked-icon) {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(158, 86, 56, 0.2);
+  }
+
+  :global(.home-locked-content) {
+    flex: 1;
+    min-width: 220px;
+  }
+
+  :global(.home-locked-kicker) {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  :global(.home-locked-title) {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+  }
+
+  :global(.home-locked-desc) {
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  :global(.home-locked-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  :global(.home-locked-btn:hover) {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+</style>
+
+<script>
+  import { isSupabaseConfigured, getSupabaseStories, getSupabaseDiaryEntries } from '../lib/supabase';
+  import { isDiaryUnlocked } from '../lib/diaryLock';
+
+  async function renderHomePage() {
+    const storiesList = document.getElementById('home-stories-list');
+    const diaryList = document.getElementById('home-diary-list');
+
+    // 1. Stories
+    if (storiesList) {
+      let stories: any[] = [];
+      if (isSupabaseConfigured()) {
+        try {
+          const rows = await getSupabaseStories();
+          stories = rows.slice(0, 3).map((r: any) => ({
+            id: r.id,
+            slug: r.slug,
+            title: r.title,
+            subtitle: r.subtitle || '',
+            excerpt: r.excerpt || '',
+            category: r.category || 'Story',
+            readTime: r.read_time || '5 min',
+            cover_image: r.cover_image || '',
+            date: new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' })
+          }));
+        } catch (e) {}
+      }
+
+      try {
+        const local = JSON.parse(localStorage.getItem('custom_stories') || '[]');
+        const mappedLocal = local.map((s: any) => ({
+          ...s,
+          cover_image: s.cover_image || s.coverImage || ''
+        }));
+        stories = [...stories, ...mappedLocal].slice(0, 3);
+      } catch (e) {}
+
+      if (stories.length === 0) {
+        storiesList.innerHTML = `
+          <div style="padding: 3rem 1.5rem; text-align: center; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background-color: var(--bg-card);">
+            <p style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-primary); margin-bottom: 0.4rem;">No stories published yet.</p>
+            <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Stories published by the author will appear here.</p>
+          </div>
+        `;
+      } else {
+        storiesList.innerHTML = stories.map(s => {
+          const hasCover = Boolean(s.cover_image);
+          return `
+          <article class="home-story-card ${hasCover ? 'has-cover' : ''} animate-fade-in">
+            ${hasCover ? `
+              <div class="home-story-cover-wrap">
+                <a href="/story?slug=${s.slug}" style="display: block; height: 100%;">
+                  <img src="${escapeHtml(s.cover_image)}" alt="${escapeHtml(s.title)}" class="home-story-cover-img" loading="lazy" />
+                </a>
+              </div>
+            ` : ''}
+
+            <div class="home-story-body">
+              <div class="home-story-meta">
+                <span class="tag">${escapeHtml(s.category)}</span>
+                <span style="color: var(--text-faint);">•</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(s.readTime)}</span>
+                <span style="color: var(--text-faint);">•</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(s.date)}</span>
+              </div>
+
+              <h3 class="home-story-title">
+                <a href="/story?slug=${s.slug}">${escapeHtml(s.title)}</a>
+              </h3>
+
+              ${s.subtitle ? `<p class="home-story-subtitle">${escapeHtml(s.subtitle)}</p>` : ''}
+              <p class="home-story-excerpt">${escapeHtml(s.excerpt)}</p>
+
+              <div class="home-story-footer">
+                <a href="/story?slug=${s.slug}" style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 600;">
+                  <span>Read story</span>
+                  <span>&rarr;</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        `;
+        }).join('');
+      }
+    }
+
+    // 2. Diary
+    if (diaryList) {
+      if (!isDiaryUnlocked()) {
+        diaryList.innerHTML = `
+          <div class="home-diary-locked-box animate-fade-in">
+            <div class="home-locked-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <div class="home-locked-content">
+              <span class="home-locked-kicker">Protected Journal</span>
+              <h3 class="home-locked-title">Diary Archive is Locked</h3>
+              <p class="home-locked-desc">Personal reflections and fragments require a passkey to view.</p>
+            </div>
+            <a href="/diary" class="home-locked-btn">
+              <span>Unlock Archive</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+        `;
+      } else {
+        let diary: any[] = [];
+        if (isSupabaseConfigured()) {
+          try {
+            const rows = await getSupabaseDiaryEntries();
+            diary = rows.slice(0, 3).map((r: any) => ({
+              id: r.id,
+              slug: r.slug,
+              title: r.title,
+              date: new Date(r.created_at).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+              timeOfDay: r.time_of_day || '',
+              location: r.location || '',
+              weather: r.weather || '',
+              mood: r.mood || 'Reflective',
+              moodEmoji: r.mood_emoji || '🌧️',
+              content: r.content || []
+            }));
+          } catch (e) {}
+        }
+
+        try {
+          const local = JSON.parse(localStorage.getItem('custom_diary_entries') || '[]');
+          diary = [...diary, ...local].slice(0, 3);
+        } catch (e) {}
+
+        if (diary.length === 0) {
+          diaryList.innerHTML = `
+            <div style="padding: 3rem 1.5rem; text-align: center; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background-color: var(--bg-card);">
+              <p style="font-family: var(--font-serif); font-size: 1.15rem; color: var(--text-primary); margin-bottom: 0.4rem;">No diary entries logged yet.</p>
+              <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0;">Entries logged by the author will appear here.</p>
+            </div>
+          `;
+        } else {
+          diaryList.innerHTML = diary.map(entry => {
+            const snippet = entry.content && entry.content[0] ? entry.content[0] : '';
+            return `
+              <div class="home-diary-item animate-fade-in">
+                <div class="diary-item-left">
+                  <div class="diary-date-badge">
+                    <span class="diary-day">${escapeHtml(entry.date)}</span>
+                    <span class="diary-time">${escapeHtml(entry.timeOfDay || '')}</span>
+                  </div>
+                </div>
+
+                <div class="diary-item-content">
+                  <div class="diary-item-header">
+                    <h3 class="diary-title">
+                      <a href="/diary-entry?slug=${entry.slug}">${escapeHtml(entry.title)}</a>
+                    </h3>
+                    <span class="tag tag-mood">${entry.moodEmoji || '🌧️'} ${escapeHtml(entry.mood || 'Reflective')}</span>
+                  </div>
+
+                  <p class="diary-snippet">${escapeHtml(snippet)}</p>
+
+                  <div class="diary-item-footer">
+                    <span>📍 ${escapeHtml(entry.location || 'Journal')}</span>
+                    <span>•</span>
+                    <span>${escapeHtml(entry.weather || 'Quiet')}</span>
+                    <a href="/diary-entry?slug=${entry.slug}" class="entry-link">Read entry &rarr;</a>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+    }
+  }
+
+  function escapeHtml(str: string) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  renderHomePage();
+  window.addEventListener('diary_updated', renderHomePage);
+  window.addEventListener('diary_lock_changed', renderHomePage);
+  document.addEventListener('astro:after-swap', renderHomePage);
+</script>

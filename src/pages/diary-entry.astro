@@ -1,0 +1,734 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Diary Log — Alok Mahapatra"
+  description="Personal journal entry."
+  activePath="/diary"
+>
+  <article class="content-container diary-reader-page" id="diary-page-container">
+    <div class="diary-toolbar">
+      <a href="/diary" class="back-link">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>Back to Diary Archive</span>
+      </a>
+
+      <div class="toolbar-right-group">
+        <button 
+          type="button" 
+          id="reader-diary-lock-btn" 
+          class="reader-lock-btn" 
+          title="Lock Diary" 
+          style="display: none;"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          <span>Lock</span>
+        </button>
+
+        <!-- Author Entry Actions (Only for Author) -->
+        <div class="author-entry-actions" id="author-entry-actions" data-author-only style="display: none;">
+          <button type="button" class="author-act-btn edit-act-btn" id="edit-entry-btn" title="Edit this entry">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Edit</span>
+          </button>
+          <button type="button" class="author-act-btn delete-act-btn" id="delete-entry-btn" title="Delete this entry">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            <span>Delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lock Screen for Individual Diary Reader -->
+    <div id="reader-lock-screen" class="diary-lock-screen" style="display: none;">
+      <div class="vault-card animate-fade-in" id="reader-vault-card">
+        <div class="vault-icon-circle">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <span class="vault-kicker">Protected Reflection</span>
+        <h2 class="vault-title">This Entry is Private</h2>
+        <p class="vault-desc">
+          This personal journal entry is password protected. Enter the passkey to read.
+        </p>
+
+        <form id="reader-unlock-form" class="vault-form" onsubmit="return false;">
+          <div class="vault-input-wrap">
+            <svg class="vault-input-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input 
+              type="password" 
+              id="reader-passkey-input" 
+              placeholder="Enter passkey..." 
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" id="reader-toggle-visibility" class="vault-eye-btn" title="Toggle visibility" aria-label="Toggle password visibility">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+
+          <button type="submit" id="reader-submit-btn" class="vault-submit-btn">
+            <span>Unlock Entry</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+
+          <div id="reader-feedback" class="vault-feedback" style="display: none;"></div>
+        </form>
+
+        <div class="vault-footer">
+          <span>Private archive for Alok Mahapatra</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="entry-loading" class="loading-state">
+      <p>Opening journal page...</p>
+    </div>
+
+    <div id="entry-content-wrapper" style="display: none;">
+      <header class="entry-header">
+        <div class="header-meta">
+          <span class="tag tag-mood" id="entry-mood-badge">🌧️ Reflective</span>
+          <span class="meta-dot">•</span>
+          <span class="meta-text" id="entry-readtime">2 min read</span>
+        </div>
+
+        <h1 class="entry-title" id="entry-title-text"></h1>
+
+        <div class="entry-details-box">
+          <div class="detail-row">
+            <span class="label">Date:</span>
+            <span class="val" id="entry-date-val"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Time:</span>
+            <span class="val" id="entry-time-val"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Location:</span>
+            <span class="val" id="entry-location-val"></span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Atmosphere:</span>
+            <span class="val" id="entry-weather-val"></span>
+          </div>
+        </div>
+      </header>
+
+      <div class="entry-divider"></div>
+
+      <div class="prose entry-content" id="entry-body-paragraphs">
+        <!-- Rendered paragraphs -->
+      </div>
+
+      <footer class="entry-footer">
+        <div class="end-symbol">✦</div>
+      </footer>
+    </div>
+
+    <div id="entry-not-found" class="not-found-state" style="display: none;">
+      <h2>Diary Entry Not Found</h2>
+      <p>The requested journal reflection could not be located.</p>
+      <a href="/diary" class="btn-primary" style="margin-top: 1rem; display: inline-block;">Back to Diary</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .diary-reader-page {
+    padding-top: 2.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .diary-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+
+  .back-link:hover {
+    color: var(--accent-terra);
+  }
+
+  .author-entry-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .author-act-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    transition: all 0.15s ease;
+  }
+
+  .author-act-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .author-act-btn.delete-act-btn:hover {
+    color: #e53e3e;
+    border-color: rgba(229, 62, 62, 0.4);
+    background-color: rgba(229, 62, 62, 0.06);
+  }
+
+  .loading-state,
+  .not-found-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    font-family: var(--font-serif);
+    color: var(--text-muted);
+  }
+
+  .entry-header {
+    margin-bottom: 2.5rem;
+  }
+
+  .header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .meta-dot {
+    color: var(--text-faint);
+  }
+
+  .meta-text {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  .entry-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    margin-bottom: 1.5rem;
+  }
+
+  .entry-details-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem 1.5rem;
+    padding: 1.25rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .label {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .val {
+    color: var(--text-primary);
+  }
+
+  .entry-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin-bottom: 2.5rem;
+  }
+
+  .entry-content {
+    margin-bottom: 4rem;
+  }
+
+  .entry-footer {
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .end-symbol {
+    text-align: center;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .toolbar-right-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .reader-lock-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .reader-lock-btn:hover {
+    color: var(--accent-terra);
+    border-color: var(--accent-terra);
+    background-color: var(--bg-subtle);
+  }
+
+  /* Vault Lock Screen Styles */
+  .diary-lock-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 1rem 5rem;
+    width: 100%;
+  }
+
+  .vault-card {
+    width: 100%;
+    max-width: 440px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 2.75rem 2.25rem;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    position: relative;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .vault-icon-circle {
+    width: 60px;
+    height: 60px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(158, 86, 56, 0.2);
+  }
+
+  .vault-kicker {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .vault-title {
+    font-size: 1.85rem;
+    font-weight: 500;
+    margin-bottom: 0.65rem;
+    color: var(--text-primary);
+  }
+
+  .vault-desc {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1.75rem;
+  }
+
+  .vault-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .vault-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .vault-input-icon {
+    position: absolute;
+    left: 0.95rem;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .vault-input-wrap input {
+    width: 100%;
+    padding: 0.8rem 2.75rem 0.8rem 2.75rem;
+    font-size: 0.95rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .vault-input-wrap input:focus {
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 3px rgba(158, 86, 56, 0.12);
+  }
+
+  .vault-eye-btn {
+    position: absolute;
+    right: 0.85rem;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2rem;
+    transition: color 0.15s ease;
+  }
+
+  .vault-eye-btn:hover {
+    color: var(--text-primary);
+  }
+
+  .vault-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.25rem;
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .vault-submit-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .vault-feedback {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
+    line-height: 1.4;
+  }
+
+  .vault-feedback.error {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: #e53e3e;
+    border: 1px solid rgba(229, 62, 62, 0.25);
+  }
+
+  .vault-feedback.success {
+    background-color: rgba(56, 161, 105, 0.1);
+    color: #38a169;
+    border: 1px solid rgba(56, 161, 105, 0.25);
+  }
+
+  .vault-footer {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed var(--border-light);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-8px); }
+    40%, 80% { transform: translateX(8px); }
+  }
+
+  .vault-card.shake {
+    animation: shake 0.4s ease;
+    border-color: rgba(229, 62, 62, 0.6);
+  }
+
+  @media (max-width: 640px) {
+    .entry-details-box {
+      grid-template-columns: 1fr;
+    }
+    .entry-title {
+      font-size: 2rem;
+    }
+  }
+</style>
+
+<script>
+  import { isSupabaseConfigured, supabase, deleteSupabaseDiaryEntry } from '../lib/supabase';
+  import { isDiaryUnlocked, unlockDiary, lockDiary } from '../lib/diaryLock';
+
+  async function initDynamicDiaryReader() {
+    const lockScreen = document.getElementById('reader-lock-screen');
+    const lockBtn = document.getElementById('reader-diary-lock-btn');
+    const loading = document.getElementById('entry-loading');
+    const wrapper = document.getElementById('entry-content-wrapper');
+    const notFound = document.getElementById('entry-not-found');
+    const authorActions = document.getElementById('author-entry-actions');
+    const editBtn = document.getElementById('edit-entry-btn');
+    const deleteBtn = document.getElementById('delete-entry-btn');
+
+    const unlocked = isDiaryUnlocked();
+
+    if (!unlocked) {
+      if (lockScreen) lockScreen.style.display = 'flex';
+      if (loading) loading.style.display = 'none';
+      if (wrapper) wrapper.style.display = 'none';
+      if (notFound) notFound.style.display = 'none';
+      if (authorActions) authorActions.style.display = 'none';
+      if (lockBtn) lockBtn.style.display = 'none';
+
+      const unlockForm = document.getElementById('reader-unlock-form') as HTMLFormElement;
+      const passInput = document.getElementById('reader-passkey-input') as HTMLInputElement;
+      const toggleVisBtn = document.getElementById('reader-toggle-visibility');
+      const feedback = document.getElementById('reader-feedback');
+      const vaultCard = document.getElementById('reader-vault-card');
+
+      if (passInput) {
+        passInput.value = '';
+        setTimeout(() => passInput.focus(), 150);
+      }
+
+      if (toggleVisBtn && passInput) {
+        toggleVisBtn.onclick = () => {
+          const isPass = passInput.type === 'password';
+          passInput.type = isPass ? 'text' : 'password';
+        };
+      }
+
+      if (unlockForm && passInput) {
+        unlockForm.onsubmit = (e) => {
+          e.preventDefault();
+          const pass = passInput.value;
+          const ok = unlockDiary(pass);
+          if (ok) {
+            if (feedback) {
+              feedback.className = 'vault-feedback success';
+              feedback.textContent = 'Passkey accepted. Opening reflection...';
+              feedback.style.display = 'block';
+            }
+            setTimeout(() => {
+              initDynamicDiaryReader();
+            }, 250);
+          } else {
+            if (feedback) {
+              feedback.className = 'vault-feedback error';
+              feedback.textContent = 'Incorrect passkey. Please try again.';
+              feedback.style.display = 'block';
+            }
+            if (vaultCard) {
+              vaultCard.classList.remove('shake');
+              void vaultCard.offsetWidth;
+              vaultCard.classList.add('shake');
+            }
+            passInput.select();
+          }
+        };
+      }
+      return;
+    }
+
+    // Unlocked view
+    if (lockScreen) lockScreen.style.display = 'none';
+    if (lockBtn) {
+      lockBtn.style.display = 'inline-flex';
+      lockBtn.onclick = () => {
+        lockDiary();
+        initDynamicDiaryReader();
+      };
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get('slug');
+
+    if (!slug) {
+      if (loading) loading.style.display = 'none';
+      if (notFound) notFound.style.display = 'block';
+      return;
+    }
+
+    let entry: any = null;
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data, error } = await supabase
+          .from('diary_entries')
+          .select('*')
+          .eq('slug', slug)
+          .single();
+
+        if (!error && data) {
+          entry = {
+            id: data.id,
+            slug: data.slug,
+            title: data.title,
+            date: new Date(data.created_at).toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+            timeOfDay: data.time_of_day || '',
+            location: data.location || '',
+            weather: data.weather || '',
+            mood: data.mood || 'Reflective',
+            moodEmoji: data.mood_emoji || '🌧️',
+            readTime: data.read_time || '2 min',
+            content: data.content || []
+          };
+        }
+      } catch (e) {}
+    }
+
+    if (!entry) {
+      try {
+        const local = JSON.parse(localStorage.getItem('custom_diary_entries') || '[]');
+        entry = local.find((e: any) => e.slug === slug);
+      } catch (e) {}
+    }
+
+    if (!entry) {
+      if (loading) loading.style.display = 'none';
+      if (notFound) notFound.style.display = 'block';
+      return;
+    }
+
+    document.title = `${entry.title} — Diary Log`;
+    const titleEl = document.getElementById('entry-title-text');
+    const moodEl = document.getElementById('entry-mood-badge');
+    const timeEl = document.getElementById('entry-readtime');
+    const dateVal = document.getElementById('entry-date-val');
+    const timeVal = document.getElementById('entry-time-val');
+    const locVal = document.getElementById('entry-location-val');
+    const weatherVal = document.getElementById('entry-weather-val');
+    const bodyEl = document.getElementById('entry-body-paragraphs');
+
+    if (titleEl) titleEl.textContent = entry.title;
+    if (moodEl) moodEl.textContent = `${entry.moodEmoji || '🌧️'} ${entry.mood || 'Reflective'}`;
+    if (timeEl) timeEl.textContent = `${entry.readTime || '2 min'} read`;
+    if (dateVal) dateVal.textContent = entry.date;
+    if (timeVal) timeVal.textContent = entry.timeOfDay || '—';
+    if (locVal) locVal.textContent = entry.location || '—';
+    if (weatherVal) weatherVal.textContent = entry.weather || '—';
+
+    if (bodyEl) {
+      bodyEl.innerHTML = (entry.content || []).map((p: string) => `<p>${escapeHtml(p)}</p>`).join('');
+    }
+
+    // Show and wire up author actions
+    if (authorActions) {
+      authorActions.style.display = 'inline-flex';
+    }
+
+    editBtn?.replaceWith(editBtn.cloneNode(true));
+    deleteBtn?.replaceWith(deleteBtn.cloneNode(true));
+
+    const newEditBtn = document.getElementById('edit-entry-btn');
+    const newDeleteBtn = document.getElementById('delete-entry-btn');
+
+    newEditBtn?.addEventListener('click', () => {
+      if (typeof (window as any).openDiaryEditor === 'function') {
+        (window as any).openDiaryEditor(entry);
+      }
+    });
+
+    newDeleteBtn?.addEventListener('click', async () => {
+      const confirmDelete = confirm(`Are you sure you want to delete "${entry.title}"? This cannot be undone.`);
+      if (!confirmDelete) return;
+
+      newDeleteBtn.setAttribute('disabled', 'true');
+      newDeleteBtn.textContent = 'Deleting...';
+
+      try {
+        if (isSupabaseConfigured() && entry.id) {
+          await deleteSupabaseDiaryEntry(entry.id);
+        } else {
+          const local = JSON.parse(localStorage.getItem('custom_diary_entries') || '[]');
+          const filtered = local.filter((e: any) => e.slug !== slug && e.id !== entry.id);
+          localStorage.setItem('custom_diary_entries', JSON.stringify(filtered));
+        }
+
+        alert('Diary entry deleted successfully.');
+        window.location.href = '/diary';
+      } catch (err: any) {
+        alert('Failed to delete entry: ' + (err.message || err));
+        newDeleteBtn.removeAttribute('disabled');
+        newDeleteBtn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>Delete</span>
+        `;
+      }
+    });
+
+    if (loading) loading.style.display = 'none';
+    if (wrapper) wrapper.style.display = 'block';
+  }
+
+  function escapeHtml(str: string) {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  initDynamicDiaryReader();
+  window.addEventListener('diary_lock_changed', initDynamicDiaryReader);
+  document.addEventListener('astro:after-swap', initDynamicDiaryReader);
+</script>
