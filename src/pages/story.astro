@@ -344,9 +344,43 @@ import StoryComments from '../components/StoryComments.astro';
     line-height: 1.6;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
+    .story-reader-page {
+      padding-top: 1.25rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .reader-toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 0.85rem;
+    }
+
+    .toolbar-right-actions {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
     .article-title {
-      font-size: 2.1rem;
+      font-size: 1.85rem;
+      line-height: 1.28;
+      word-break: break-word;
+    }
+
+    .article-subtitle {
+      font-size: 1rem;
+    }
+
+    .story-content {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
     }
   }
 </style>

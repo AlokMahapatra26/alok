@@ -2,7 +2,6 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { diaryEntries } from '../../data/diary';
 
-const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'Peaceful'];
 ---
 
 <BaseLayout
@@ -106,20 +105,8 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
 
     <!-- Unlocked State Container -->
     <div id="diary-unlocked-content" style="display: none;">
-      <!-- Filter & Search Toolbar -->
+      <!-- Search Toolbar -->
       <div class="diary-toolbar">
-        <div class="mood-filters" id="mood-filters">
-          {moods.map((m, idx) => (
-            <button 
-              type="button" 
-              class={`mood-pill ${idx === 0 ? 'active' : ''}`} 
-              data-mood={m}
-            >
-              {m}
-            </button>
-          ))}
-        </div>
-
         <div class="diary-search">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="8"></circle>
@@ -140,7 +127,7 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
       </div>
 
       <div id="no-diary-entries" class="no-results" style="display: none;">
-        <p>No diary entries found matching this mood or search query.</p>
+        <p>No diary entries found matching your search query.</p>
       </div>
     </div>
   </div>
@@ -209,39 +196,8 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
   .diary-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
+    justify-content: flex-start;
     margin-bottom: 2.5rem;
-    flex-wrap: wrap;
-  }
-
-  .mood-filters {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
-  .mood-pill {
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 0.35rem 0.8rem;
-    border-radius: 9999px;
-    color: var(--text-secondary);
-    background-color: var(--bg-subtle);
-    border: 1px solid var(--border-light);
-    transition: all 0.15s ease;
-  }
-
-  .mood-pill:hover {
-    color: var(--text-primary);
-    border-color: var(--border-strong);
-  }
-
-  .mood-pill.active {
-    background-color: var(--text-primary);
-    color: var(--bg-primary);
-    border-color: var(--text-primary);
   }
 
   .diary-search {
@@ -251,8 +207,9 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
     background-color: var(--bg-card);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
-    padding: 0.45rem 0.85rem;
-    min-width: 260px;
+    padding: 0.55rem 0.95rem;
+    width: 100%;
+    max-width: 380px;
     color: var(--text-muted);
   }
 
@@ -728,23 +685,20 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
 
     const allEntries = [...entriesFromDb, ...customEntries];
 
-    const moodPills = document.querySelectorAll('.mood-pill');
     const searchInput = document.getElementById('diary-search-input') as HTMLInputElement;
     const noResults = document.getElementById('no-diary-entries');
 
-    let activeMood = 'All';
     let searchQuery = '';
 
     function renderFeed() {
       const filtered = allEntries.filter(entry => {
-        const matchesMood = activeMood === 'All' || entry.mood.toLowerCase() === activeMood.toLowerCase();
         const contentStr = (entry.content || []).join(' ').toLowerCase();
         const matchesSearch = !searchQuery || 
           entry.title.toLowerCase().includes(searchQuery) || 
           contentStr.includes(searchQuery) ||
           (entry.location || '').toLowerCase().includes(searchQuery);
 
-        return matchesMood && matchesSearch;
+        return matchesSearch;
       });
 
       if (allEntries.length === 0) {
@@ -877,16 +831,6 @@ const moods = ['All', 'Reflective', 'Contemplative', 'Grounded', 'Nostalgic', 'P
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
     }
-
-    moodPills.forEach(pill => {
-      pill.addEventListener('click', (e) => {
-        moodPills.forEach(p => p.classList.remove('active'));
-        const target = e.currentTarget as HTMLElement;
-        target.classList.add('active');
-        activeMood = target.dataset.mood || 'All';
-        renderFeed();
-      });
-    });
 
     searchInput?.addEventListener('input', () => {
       searchQuery = searchInput.value.trim().toLowerCase();

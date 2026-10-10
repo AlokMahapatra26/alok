@@ -126,6 +126,9 @@ const navItems = [
       <a href="/login" class="mobile-nav-link" id="mobile-login-link" style="font-size: 0.9rem; color: var(--text-muted);">
         Author Desk Sign In
       </a>
+      <button type="button" class="mobile-nav-link" id="mobile-logout-btn" style="text-align: left; background: none; border: none; cursor: pointer; color: #e53e3e; display: none; font-size: 0.95rem;">
+        Sign Out (Author)
+      </button>
     </nav>
   </div>
 </header>
@@ -352,15 +355,31 @@ const navItems = [
     border-radius: var(--radius-sm);
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
+    .header-inner {
+      height: 60px;
+    }
+    .brand-title {
+      font-size: 1.15rem;
+      white-space: nowrap;
+    }
+    .brand-subtitle {
+      font-size: 0.65rem;
+    }
     .nav-desktop {
-      display: none;
+      display: none !important;
     }
     .write-btn {
-      display: none;
+      display: none !important;
+    }
+    .author-badge-group {
+      display: none !important;
     }
     .mobile-menu-btn {
       display: flex;
+    }
+    .header-actions {
+      gap: 0.4rem;
     }
   }
 </style>
@@ -412,6 +431,8 @@ const navItems = [
         if (openWriterMobile) openWriterMobile.style.display = 'inline-flex';
         if (loginLink) loginLink.style.display = 'none';
         if (mobileLoginLink) mobileLoginLink.style.display = 'none';
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'block';
       } else {
         document.documentElement.removeAttribute('data-author-authenticated');
         if (authorBadgeGroup) authorBadgeGroup.style.display = 'none';
@@ -419,6 +440,8 @@ const navItems = [
         if (openWriterMobile) openWriterMobile.style.display = 'none';
         if (loginLink) loginLink.style.display = 'inline-flex';
         if (mobileLoginLink) mobileLoginLink.style.display = 'block';
+        const mobileLogoutBtn = document.getElementById('mobile-logout-btn');
+        if (mobileLogoutBtn) mobileLogoutBtn.style.display = 'none';
       }
     }
 
@@ -438,11 +461,14 @@ const navItems = [
     updateDiaryLockUI();
     window.addEventListener('diary_lock_changed', updateDiaryLockUI);
 
-    logoutBtn?.addEventListener('click', async () => {
+    const handleLogout = async () => {
       document.documentElement.removeAttribute('data-author-authenticated');
       await signOutAuthor();
       window.location.href = '/';
-    });
+    };
+
+    logoutBtn?.addEventListener('click', handleLogout);
+    document.getElementById('mobile-logout-btn')?.addEventListener('click', handleLogout);
 
     const openModal = () => {
       // If Supabase is configured and user is NOT logged in, redirect to login

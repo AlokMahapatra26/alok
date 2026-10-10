@@ -501,12 +501,56 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     border-color: rgba(229, 62, 62, 0.6);
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 768px) {
+    .diary-reader-page {
+      padding-top: 1.25rem;
+      padding-bottom: 3.5rem;
+    }
+
+    .diary-toolbar {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+      padding-bottom: 0.85rem;
+    }
+
+    .toolbar-right-group {
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .author-entry-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .entry-title {
+      font-size: 1.75rem;
+      line-height: 1.3;
+      margin-bottom: 1.25rem;
+      word-break: break-word;
+    }
+
     .entry-details-box {
       grid-template-columns: 1fr;
+      padding: 1rem;
+      gap: 0.65rem;
     }
-    .entry-title {
-      font-size: 2rem;
+
+    .entry-divider {
+      margin-bottom: 1.75rem;
+    }
+
+    .entry-content {
+      font-size: 1.02rem;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
     }
   }
 </style>

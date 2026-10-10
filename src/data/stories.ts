@@ -17,6 +17,7 @@ export interface Story {
   readTime: string;
   category: string;
   featured?: boolean;
+  cover_image?: string;
   content: string[];
   initialComments: Comment[];
 }
