@@ -412,6 +412,9 @@ import StoryComments from '../components/StoryComments.astro';
 
 <script>
   import { isSupabaseConfigured, supabase, deleteSupabaseStory } from '../lib/supabase';
+  import { marked } from 'marked';
+
+  marked.setOptions({ gfm: true, breaks: true });
 
   async function initDynamicStoryReader() {
     const params = new URLSearchParams(window.location.search);
@@ -509,9 +512,18 @@ import StoryComments from '../components/StoryComments.astro';
     if (timeEl) timeEl.textContent = story.readTime;
     if (dateEl) dateEl.textContent = story.date;
 
+    let storyCoverUrl = story.cover_image || '';
+    if (!storyCoverUrl && Array.isArray(story.content)) {
+      const coverItem = story.content.find((p: string) => typeof p === 'string' && p.startsWith('__COVER__:'));
+      if (coverItem) {
+        storyCoverUrl = coverItem.replace('__COVER__:', '').trim();
+        story.content = story.content.filter((p: string) => p !== coverItem);
+      }
+    }
+
     if (coverBanner && coverImg) {
-      if (story.cover_image) {
-        coverImg.src = story.cover_image;
+      if (storyCoverUrl) {
+        coverImg.src = storyCoverUrl;
         coverBanner.style.display = 'block';
       } else {
         coverBanner.style.display = 'none';
@@ -519,37 +531,11 @@ import StoryComments from '../components/StoryComments.astro';
     }
 
     if (bodyEl) {
-      bodyEl.innerHTML = (story.content || []).map((p: string, idx: number) => {
-        const trimmed = (p || '').trim();
-        const singleImg = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
-        if (singleImg) {
-          const alt = singleImg[1];
-          const url = singleImg[2];
-          return `
-            <figure class="story-body-figure">
-              <img src="${url}" alt="${escapeHtml(alt)}" loading="lazy" class="story-body-inline-img" />
-              ${alt && alt !== 'Photo' ? `<figcaption class="story-body-caption">${escapeHtml(alt)}</figcaption>` : ''}
-            </figure>
-          `;
-        }
-
-        if (trimmed.includes('![') && trimmed.includes('](')) {
-          let html = escapeHtml(trimmed);
-          html = html.replace(/!\[(.*?)\]\((.*?)\)/g, (_, alt, url) => `
-            </p>
-            <figure class="story-body-figure">
-              <img src="${url}" alt="${alt}" loading="lazy" class="story-body-inline-img" />
-              ${alt && alt !== 'Photo' ? `<figcaption class="story-body-caption">${alt}</figcaption>` : ''}
-            </figure>
-            <p>
-          `);
-          return `<p class="${idx === 0 ? 'drop-cap' : ''}">${html}</p>`;
-        }
-
-        return `
-          <p class="${idx === 0 ? 'drop-cap' : ''}">${escapeHtml(trimmed)}</p>
-        `;
-      }).join('');
+      const cleanStoryContent = (story.content || []).filter((p: string) => typeof p === 'string' && !p.startsWith('__COVER__:'));
+      const fullText = cleanStoryContent.join('\n\n');
+      bodyEl.innerHTML = marked.parse(fullText) as string;
+      const firstP = bodyEl.querySelector('p');
+      if (firstP) firstP.classList.add('drop-cap');
     }
 
     // Embed comments section
@@ -577,9 +563,7 @@ import StoryComments from '../components/StoryComments.astro';
     const newDeleteBtn = document.getElementById('delete-story-btn');
 
     newEditBtn?.addEventListener('click', () => {
-      if (typeof (window as any).openStoryEditor === 'function') {
-        (window as any).openStoryEditor(story);
-      }
+      window.location.href = `/write?type=story&id=${encodeURIComponent(story.id || '')}&slug=${encodeURIComponent(story.slug || slug || '')}`;
     });
 
     newDeleteBtn?.addEventListener('click', async () => {

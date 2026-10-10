@@ -62,20 +62,20 @@ const navItems = [
         </button>
       </div>
 
-      <!-- Write button (opens author composer, author only) -->
-      <button 
-        type="button" 
+      <!-- Write button (opens dedicated author desk, author only) -->
+      <a 
+        href="/write" 
         id="open-writer-btn" 
         class="write-btn" 
         data-author-only
-        title="Open Author Composer"
+        title="Open Author Desk"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h9"></path>
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
         </svg>
         <span>Write</span>
-      </button>
+      </a>
 
       <!-- Author Login Link (visible when not logged in) -->
       <a href="/login" id="header-login-link" class="author-login-icon" title="Author Desk Sign In" aria-label="Author Desk Sign In">
@@ -125,13 +125,13 @@ const navItems = [
           )}
         </a>
       ))}
-      <button type="button" class="mobile-write-btn" id="mobile-write-trigger" data-author-only>
+      <a href="/write" class="mobile-write-btn" id="mobile-write-trigger" data-author-only>
         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h9"></path>
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
         </svg>
-        <span>Write Entry</span>
-      </button>
+        <span>Write</span>
+      </a>
       <a href="/login" class="mobile-nav-link" id="mobile-login-link" style="font-size: 0.9rem; color: var(--text-muted);">
         Author Desk Sign In
       </a>
@@ -336,12 +336,14 @@ const navItems = [
     color: var(--bg-primary);
     background-color: var(--text-primary);
     border-radius: var(--radius-sm);
+    text-decoration: none;
     transition: all 0.2s ease;
   }
 
   .write-btn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+    color: var(--bg-primary);
   }
 
   .mobile-menu-btn {
@@ -395,6 +397,11 @@ const navItems = [
     color: var(--bg-primary);
     background-color: var(--text-primary);
     border-radius: var(--radius-sm);
+    text-decoration: none;
+  }
+
+  .mobile-write-btn:hover {
+    color: var(--bg-primary);
   }
 
   @media (max-width: 980px) {
@@ -449,7 +456,6 @@ const navItems = [
 
     const openWriterDesktop = document.getElementById('open-writer-btn');
     const openWriterMobile = document.getElementById('mobile-write-trigger');
-    const modal = document.getElementById('diary-writer-modal');
     const authorBadgeGroup = document.getElementById('author-badge-group');
     const loginLink = document.getElementById('header-login-link');
     const mobileLoginLink = document.getElementById('mobile-login-link');
@@ -514,31 +520,6 @@ const navItems = [
 
     logoutBtn?.addEventListener('click', handleLogout);
     document.getElementById('mobile-logout-btn')?.addEventListener('click', handleLogout);
-
-    const openModal = () => {
-      // If Supabase is configured and user is NOT logged in, redirect to login
-      if (isSupabaseConfigured() && !isAuthorAuthenticated) {
-        if (confirm('Only the author (Alok) has writing permissions. Would you like to sign in to the Author Desk?')) {
-          window.location.href = '/login';
-        }
-        return;
-      }
-
-      if (modal) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-      }
-      if (mobileMenu?.classList.contains('open')) {
-        mobileMenu.classList.remove('open');
-        if (iconMenu && iconClose) {
-          iconMenu.style.display = 'block';
-          iconClose.style.display = 'none';
-        }
-      }
-    };
-
-    openWriterDesktop?.addEventListener('click', openModal);
-    openWriterMobile?.addEventListener('click', openModal);
   }
 
   setupHeader();

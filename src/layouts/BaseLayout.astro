@@ -1,7 +1,6 @@
 ---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-import DiaryWriterModal from '../components/DiaryWriterModal.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -74,7 +73,6 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'http://localhost
       <slot />
     </main>
     <Footer />
-    <DiaryWriterModal />
   </body>
 </html>
 

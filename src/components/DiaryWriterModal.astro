@@ -1598,8 +1598,15 @@
       if (timeIn) timeIn.value = entry.time_of_day || entry.timeOfDay || '';
       if (locInput) locInput.value = entry.location || '';
       if (weatherInput) weatherInput.value = entry.weather || '';
+      let coverVal = entry.cover_image || entry.coverImage || '';
+      let diaryContent = Array.isArray(entry.content) ? [...entry.content] : (typeof entry.content === 'string' ? [entry.content] : []);
+      if (!coverVal && diaryContent.length > 0 && typeof diaryContent[0] === 'string' && diaryContent[0].startsWith('__COVER__:')) {
+        coverVal = diaryContent[0].replace('__COVER__:', '').trim();
+        diaryContent = diaryContent.slice(1);
+      }
+      diaryContent = diaryContent.filter((c: string) => typeof c === 'string' && !c.startsWith('__COVER__:'));
+
       if (diaryCoverUrlInput) {
-        const coverVal = entry.cover_image || entry.coverImage || '';
         diaryCoverUrlInput.value = coverVal;
         updateDiaryThumbPreview(coverVal);
         if (coverVal && !coverVal.startsWith('data:')) {
@@ -1609,7 +1616,7 @@
         }
       }
       if (contentIn) {
-        contentIn.value = Array.isArray(entry.content) ? entry.content.join('\n\n') : (entry.content || '');
+        contentIn.value = diaryContent.join('\n\n');
         contentIn.dispatchEvent(new Event('input'));
       }
 
@@ -1648,11 +1655,19 @@
       if (titleInput) titleInput.value = story.title || '';
       if (subInput) subInput.value = story.subtitle || '';
       if (catSelect && story.category) catSelect.value = story.category;
+
+      let storyCoverVal = story.cover_image || story.coverImage || '';
+      let storyContent = Array.isArray(story.content) ? [...story.content] : (typeof story.content === 'string' ? [story.content] : []);
+      if (!storyCoverVal && storyContent.length > 0 && typeof storyContent[0] === 'string' && storyContent[0].startsWith('__COVER__:')) {
+        storyCoverVal = storyContent[0].replace('__COVER__:', '').trim();
+        storyContent = storyContent.slice(1);
+      }
+      storyContent = storyContent.filter((c: string) => typeof c === 'string' && !c.startsWith('__COVER__:'));
+
       if (coverUrlInput) {
-        const coverVal = story.cover_image || story.coverImage || '';
-        coverUrlInput.value = coverVal;
-        updateThumbPreview(coverVal);
-        if (coverVal && !coverVal.startsWith('data:')) {
+        coverUrlInput.value = storyCoverVal;
+        updateThumbPreview(storyCoverVal);
+        if (storyCoverVal && !storyCoverVal.startsWith('data:')) {
           btnModeUrl?.click();
         } else {
           btnModeUpload?.click();
@@ -1660,7 +1675,7 @@
       }
       if (excerptInput) excerptInput.value = story.excerpt || '';
       if (contentIn) {
-        contentIn.value = Array.isArray(story.content) ? story.content.join('\n\n') : (story.content || '');
+        contentIn.value = storyContent.join('\n\n');
         contentIn.dispatchEvent(new Event('input'));
       }
 

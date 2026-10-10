@@ -1,0 +1,2594 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Author Desk — Alok Mahapatra"
+  description="Compose and publish personal journal entries and stories."
+  activePath="/write"
+>
+  <div class="write-page-container">
+    <!-- Auth Guard: Shown when not authenticated -->
+    <div id="author-desk-lock" class="author-desk-lock" style="display: none;">
+      <div class="lock-card">
+        <div class="lock-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <span class="lock-kicker">Author Only</span>
+        <h1 class="lock-title">Author Desk is Private</h1>
+        <p class="lock-desc">
+          Only Alok Mahapatra can compose, edit, or publish entries. Please sign in to access the desk.
+        </p>
+        <a href="/login" class="lock-login-btn">
+          <span>Sign In to Author Desk</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Active Author Workspace -->
+    <div id="author-workspace" class="author-workspace">
+      <!-- Top Navigation & Controls Bar -->
+      <div class="writer-top-bar">
+        <button type="button" id="writer-back-btn" class="writer-back-btn" title="Back">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span id="back-btn-text">Back</span>
+        </button>
+
+        <div class="composer-type-tabs" role="tablist">
+          <button type="button" class="type-tab active" id="tab-diary" data-mode="diary" role="tab" aria-selected="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Journal Entry</span>
+          </button>
+          <button type="button" class="type-tab" id="tab-story" data-mode="story" role="tab" aria-selected="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <span>Story / Prose</span>
+          </button>
+        </div>
+
+        <div class="top-status-indicator">
+          <span id="composer-editing-tag" class="composer-editing-tag" style="display: none;">Editing</span>
+        </div>
+      </div>
+
+      <!-- ==================== DIARY FORM ==================== -->
+      <form id="diary-writer-form" class="writer-form" onsubmit="event.preventDefault();">
+        <!-- Title Input -->
+        <div class="form-title-row">
+          <input 
+            type="text" 
+            id="entry-title" 
+            class="title-input" 
+            placeholder="Title of this day's entry..." 
+            required 
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Collapsible Top Metadata & Cover Section -->
+        <div class="collapsible-card" id="diary-collapsible-card">
+          <div class="collapsible-header-btn" id="diary-collapsible-toggle" role="button" tabindex="0" aria-expanded="true">
+            <div class="header-left">
+              <span class="collapsible-icon-pill">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </span>
+              <span class="collapsible-title">Entry Details & Cover</span>
+              <span class="collapsible-summary-badge" id="diary-summary-badge">🌧️ Reflective • Today</span>
+            </div>
+            <div class="header-right">
+              <span class="collapsible-toggle-state" id="diary-toggle-label">Hide Details</span>
+              <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <div class="collapsible-content" id="diary-collapsible-content">
+            <div class="metadata-grid">
+              <div class="meta-field">
+                <label for="entry-mood">Mood</label>
+                <select id="entry-mood" class="meta-select">
+                  <option value="Reflective|🌧️">🌧️ Reflective</option>
+                  <option value="Contemplative|☕">☕ Contemplative</option>
+                  <option value="Grounded|🌿">🌿 Grounded</option>
+                  <option value="Nostalgic|🍂">🍂 Nostalgic</option>
+                  <option value="Peaceful|✨">✨ Peaceful</option>
+                  <option value="Inspired|💡">💡 Inspired</option>
+                  <option value="Tired|🌙">🌙 Tired</option>
+                  <option value="Wandering|🧭">🧭 Wandering</option>
+                </select>
+              </div>
+
+              <div class="meta-field">
+                <label for="entry-time">Time</label>
+                <input type="text" id="entry-time" class="meta-input" placeholder="e.g. 06:15 PM" />
+              </div>
+
+              <div class="meta-field">
+                <label for="entry-location">Location</label>
+                <input type="text" id="entry-location" class="meta-input" placeholder="e.g. Home, Study, Cafe" />
+              </div>
+
+              <div class="meta-field">
+                <label for="entry-weather">Atmosphere / Weather</label>
+                <input type="text" id="entry-weather" class="meta-input" placeholder="e.g. Quiet evening, Rain" />
+              </div>
+            </div>
+
+            <!-- DIARY COVER PHOTO (FOR ARCHIVE CARDS) -->
+            <div class="meta-field thumbnail-field">
+              <div class="thumbnail-header-row">
+                <label for="diary-cover-file">Archive Cover Photo (Optional)</label>
+                <div class="thumb-mode-toggle" role="tablist">
+                  <button type="button" class="thumb-mode-btn active" id="btn-diary-mode-upload" role="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Upload Photo</span>
+                  </button>
+                  <button type="button" class="thumb-mode-btn" id="btn-diary-mode-url" role="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <span>Link / Presets</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- UPLOAD PHOTO PANEL -->
+              <div id="diary-thumb-upload-panel" class="thumb-panel">
+                <input 
+                  type="file" 
+                  id="diary-cover-file" 
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+                  class="visually-hidden-file" 
+                />
+                <div id="diary-thumb-dropzone" class="thumb-dropzone" tabindex="0" role="button">
+                  <div class="dropzone-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text-block">
+                    <span class="dropzone-title">Upload a cover photo for archive cards</span>
+                    <span class="dropzone-hint">Drag & drop or click to choose (auto-compressed)</span>
+                  </div>
+                  <button type="button" id="diary-browse-photo-btn" class="browse-btn">
+                    <span>Choose Photo</span>
+                  </button>
+                </div>
+                <div id="diary-thumb-uploading-indicator" class="thumb-uploading-indicator" style="display: none;">
+                  <div class="spinner-sm"></div>
+                  <span>Optimizing photo...</span>
+                </div>
+              </div>
+
+              <!-- URL & PRESETS PANEL -->
+              <div id="diary-thumb-url-panel" class="thumb-panel" style="display: none;">
+                <div class="thumbnail-input-group">
+                  <input 
+                    type="text" 
+                    id="diary-cover-url" 
+                    class="meta-input thumbnail-input" 
+                    placeholder="Paste image URL, e.g. https://images.unsplash.com/..." 
+                  />
+                </div>
+                <div class="thumb-presets-row">
+                  <span class="preset-label">Presets:</span>
+                  <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80">☕ Coffee & Journal</button>
+                  <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1200&q=80">🌿 Morning Sunlight</button>
+                  <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80">🌊 Calm Sea</button>
+                  <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">🌅 Evening Glow</button>
+                </div>
+              </div>
+
+              <!-- THUMBNAIL PREVIEW CARD -->
+              <div id="diary-thumb-preview-box" class="thumb-preview-box" style="display: none;">
+                <div class="thumb-preview-card">
+                  <div class="thumb-preview-image-wrap">
+                    <img id="diary-thumb-preview-img" src="" alt="Cover preview" />
+                  </div>
+                  <div class="thumb-preview-info-row">
+                    <div class="thumb-status-badge">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span id="diary-thumb-status-text">Cover Attached</span>
+                    </div>
+                    <div class="thumb-card-actions">
+                      <button type="button" id="diary-change-thumb-btn" class="thumb-card-btn change-btn">Change</button>
+                      <button type="button" id="diary-clear-cover-btn" class="thumb-card-btn remove-btn">Remove</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RICH TEXT EDITOR FOR DIARY -->
+        <div class="rich-editor-wrapper" id="diary-rich-editor">
+          <!-- Rich Toolbar -->
+          <div class="rich-toolbar" id="diary-toolbar" role="toolbar" aria-label="Formatting Toolbar">
+            <div class="tb-group view-switcher-group">
+              <button type="button" class="view-pill active" id="diary-view-visual" data-view="visual" title="Visual Rich Text Editor">
+                <span>Visual</span>
+              </button>
+              <button type="button" class="view-pill" id="diary-view-markdown" data-view="markdown" title="Markdown Source Editor">
+                <span>Markdown</span>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group format-buttons">
+              <button type="button" class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)">
+                <strong>B</strong>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)">
+                <em>I</em>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)">
+                <u>U</u>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="strikeThrough" title="Strikethrough">
+                <s>S</s>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group block-buttons">
+              <button type="button" class="tb-btn tb-text-btn" data-format="h2" title="Heading 2">H2</button>
+              <button type="button" class="tb-btn tb-text-btn" data-format="h3" title="Heading 3">H3</button>
+              <button type="button" class="tb-btn tb-text-btn" data-format="p" title="Paragraph">P</button>
+              <button type="button" class="tb-btn" data-format="blockquote" title="Quote">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+                  <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertUnorderedList" title="Bullet List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <circle cx="3" cy="6" r="1.5" fill="currentColor"></circle>
+                  <circle cx="3" cy="12" r="1.5" fill="currentColor"></circle>
+                  <circle cx="3" cy="18" r="1.5" fill="currentColor"></circle>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertOrderedList" title="Numbered List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="10" y1="6" x2="21" y2="6"></line>
+                  <line x1="10" y1="12" x2="21" y2="12"></line>
+                  <line x1="10" y1="18" x2="21" y2="18"></line>
+                  <path d="M4 6h1v4"></path>
+                  <path d="M4 10h2"></path>
+                  <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-format="pre" title="Code Block">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertHorizontalRule" title="Divider line">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group media-buttons">
+              <button type="button" class="tb-btn" id="diary-insert-link-btn" title="Insert Link (Ctrl+K)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn tb-accent-btn" id="diary-insert-photo-btn" title="Insert In-Body Photo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Photo</span>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group utility-buttons">
+              <button type="button" class="tb-btn" data-cmd="undo" title="Undo (Ctrl+Z)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7v6h6"></path>
+                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="redo" title="Redo (Ctrl+Y)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 7v6h-6"></path>
+                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="removeFormat" title="Clear Formatting">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Visual Canvas (WYSIWYG) -->
+          <div 
+            id="diary-rich-canvas" 
+            class="rich-editor-canvas prose" 
+            contenteditable="true" 
+            role="textbox" 
+            aria-multiline="true"
+            spellcheck="true"
+            data-placeholder="Start writing today's journal entry... Format with rich headings, blockquotes, lists, and inline photos using the toolbar above."
+          ></div>
+
+          <!-- Markdown View (Source) -->
+          <textarea 
+            id="diary-raw-markdown" 
+            class="raw-markdown-textarea" 
+            style="display: none;" 
+            placeholder="Write your entry in Markdown..."
+          ></textarea>
+
+          <input 
+            type="file" 
+            id="diary-inline-photo-file" 
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+            class="visually-hidden-file" 
+          />
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="writer-footer">
+          <div class="stats">
+            <span id="word-count-display">0 words</span>
+            <span class="dot">•</span>
+            <span id="read-time-display">1 min read</span>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="cancel-btn form-discard-btn">Discard</button>
+            <button type="submit" class="save-btn" id="diary-save-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2 2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Save to Journal</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- ==================== STORY FORM ==================== -->
+      <form id="story-writer-form" class="writer-form" onsubmit="event.preventDefault();" style="display: none;">
+        <!-- Title Input -->
+        <div class="form-title-row">
+          <input 
+            type="text" 
+            id="story-title" 
+            class="title-input" 
+            placeholder="Story title..." 
+            required 
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Collapsible Top Metadata & Cover Section -->
+        <div class="collapsible-card" id="story-collapsible-card">
+          <div class="collapsible-header-btn" id="story-collapsible-toggle" role="button" tabindex="0" aria-expanded="true">
+            <div class="header-left">
+              <span class="collapsible-icon-pill">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </span>
+              <span class="collapsible-title">Story Details & Cover</span>
+              <span class="collapsible-summary-badge" id="story-summary-badge">Short Story</span>
+            </div>
+            <div class="header-right">
+              <span class="collapsible-toggle-state" id="story-toggle-label">Hide Details</span>
+              <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
+
+          <div class="collapsible-content" id="story-collapsible-content">
+            <div class="story-meta-grid">
+              <div class="meta-field">
+                <label for="story-subtitle">Subtitle / Hook</label>
+                <input type="text" id="story-subtitle" class="meta-input" placeholder="A quiet evening, words left unsaid..." />
+              </div>
+
+              <div class="meta-field">
+                <label for="story-category">Category</label>
+                <select id="story-category" class="meta-select">
+                  <option value="Short Story">Short Story</option>
+                  <option value="Memoir">Memoir</option>
+                  <option value="Fiction">Fiction</option>
+                  <option value="Essay">Essay</option>
+                  <option value="Poetry">Poetry</option>
+                  <option value="Fragment">Fragment</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="meta-field thumbnail-field">
+              <div class="thumbnail-header-row">
+                <label for="story-cover-file">Story Cover Image (Optional)</label>
+                <div class="thumb-mode-toggle" role="tablist">
+                  <button type="button" class="thumb-mode-btn active" id="btn-mode-upload" role="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="17 8 12 3 7 8"></polyline>
+                      <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>Upload Photo</span>
+                  </button>
+                  <button type="button" class="thumb-mode-btn" id="btn-mode-url" role="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    <span>Link / Presets</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- UPLOAD STORY PHOTO PANEL -->
+              <div id="thumb-upload-panel" class="thumb-panel">
+                <input 
+                  type="file" 
+                  id="story-cover-file" 
+                  accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+                  class="visually-hidden-file" 
+                />
+                <div id="thumb-dropzone" class="thumb-dropzone" tabindex="0" role="button">
+                  <div class="dropzone-icon-wrap">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                      <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                  </div>
+                  <div class="dropzone-text-block">
+                    <span class="dropzone-title">Upload a cover image</span>
+                    <span class="dropzone-hint">Drag & drop or click to choose (auto-compressed)</span>
+                  </div>
+                  <button type="button" id="browse-photo-btn" class="browse-btn">
+                    <span>Choose Photo</span>
+                  </button>
+                </div>
+                <div id="thumb-uploading-indicator" class="thumb-uploading-indicator" style="display: none;">
+                  <div class="spinner-sm"></div>
+                  <span>Optimizing photo...</span>
+                </div>
+              </div>
+
+              <!-- URL STORY PANEL -->
+              <div id="thumb-url-panel" class="thumb-panel" style="display: none;">
+                <div class="thumbnail-input-group">
+                  <input 
+                    type="text" 
+                    id="story-cover-url" 
+                    class="meta-input thumbnail-input" 
+                    placeholder="Paste image URL, e.g. https://images.unsplash.com/..." 
+                  />
+                </div>
+                <div class="thumb-presets-row">
+                  <span class="preset-label">Presets:</span>
+                  <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80">☕ Coffee & Book</button>
+                  <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80">🏔️ Starry Peak</button>
+                  <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80">🌲 Forest Mist</button>
+                  <button type="button" class="preset-pill" data-img="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">🌅 Golden Glow</button>
+                </div>
+              </div>
+
+              <!-- STORY PREVIEW CARD -->
+              <div id="thumb-preview-box" class="thumb-preview-box" style="display: none;">
+                <div class="thumb-preview-card">
+                  <div class="thumb-preview-image-wrap">
+                    <img id="thumb-preview-img" src="" alt="Thumbnail preview" />
+                  </div>
+                  <div class="thumb-preview-info-row">
+                    <div class="thumb-status-badge">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span id="thumb-status-text">Thumbnail Attached</span>
+                    </div>
+                    <div class="thumb-card-actions">
+                      <button type="button" id="change-thumb-btn" class="thumb-card-btn change-btn">Change</button>
+                      <button type="button" id="clear-cover-btn" class="thumb-card-btn remove-btn">Remove</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="meta-field">
+              <label for="story-excerpt">Excerpt / Opening Hook</label>
+              <textarea id="story-excerpt" class="meta-textarea" rows="2" placeholder="Brief summary or opening hook shown in previews..." required></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- RICH TEXT EDITOR FOR STORY -->
+        <div class="rich-editor-wrapper" id="story-rich-editor">
+          <!-- Rich Toolbar -->
+          <div class="rich-toolbar" id="story-toolbar" role="toolbar" aria-label="Formatting Toolbar">
+            <div class="tb-group view-switcher-group">
+              <button type="button" class="view-pill active" id="story-view-visual" data-view="visual" title="Visual Rich Text Editor">
+                <span>Visual</span>
+              </button>
+              <button type="button" class="view-pill" id="story-view-markdown" data-view="markdown" title="Markdown Source Editor">
+                <span>Markdown</span>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group format-buttons">
+              <button type="button" class="tb-btn" data-cmd="bold" title="Bold (Ctrl+B)">
+                <strong>B</strong>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="italic" title="Italic (Ctrl+I)">
+                <em>I</em>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="underline" title="Underline (Ctrl+U)">
+                <u>U</u>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="strikeThrough" title="Strikethrough">
+                <s>S</s>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group block-buttons">
+              <button type="button" class="tb-btn tb-text-btn" data-format="h2" title="Heading 2">H2</button>
+              <button type="button" class="tb-btn tb-text-btn" data-format="h3" title="Heading 3">H3</button>
+              <button type="button" class="tb-btn tb-text-btn" data-format="p" title="Paragraph">P</button>
+              <button type="button" class="tb-btn" data-format="blockquote" title="Quote">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+                  <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertUnorderedList" title="Bullet List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <circle cx="3" cy="6" r="1.5" fill="currentColor"></circle>
+                  <circle cx="3" cy="12" r="1.5" fill="currentColor"></circle>
+                  <circle cx="3" cy="18" r="1.5" fill="currentColor"></circle>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertOrderedList" title="Numbered List">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="10" y1="6" x2="21" y2="6"></line>
+                  <line x1="10" y1="12" x2="21" y2="12"></line>
+                  <line x1="10" y1="18" x2="21" y2="18"></line>
+                  <path d="M4 6h1v4"></path>
+                  <path d="M4 10h2"></path>
+                  <path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-format="pre" title="Code Block">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"></polyline>
+                  <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="insertHorizontalRule" title="Divider line">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group media-buttons">
+              <button type="button" class="tb-btn" id="story-insert-link-btn" title="Insert Link (Ctrl+K)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn tb-accent-btn" id="story-insert-photo-btn" title="Insert In-Body Photo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <span>Photo</span>
+              </button>
+            </div>
+
+            <div class="tb-sep"></div>
+
+            <div class="tb-group utility-buttons">
+              <button type="button" class="tb-btn" data-cmd="undo" title="Undo (Ctrl+Z)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7v6h6"></path>
+                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="redo" title="Redo (Ctrl+Y)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 7v6h-6"></path>
+                  <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+                </svg>
+              </button>
+              <button type="button" class="tb-btn" data-cmd="removeFormat" title="Clear Formatting">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Visual Canvas (WYSIWYG) -->
+          <div 
+            id="story-rich-canvas" 
+            class="rich-editor-canvas prose" 
+            contenteditable="true" 
+            role="textbox" 
+            aria-multiline="true"
+            spellcheck="true"
+            data-placeholder="Write your story here... Use the toolbar above for rich formatting, headings, quotes, and photos."
+          ></div>
+
+          <!-- Markdown View (Source) -->
+          <textarea 
+            id="story-raw-markdown" 
+            class="raw-markdown-textarea" 
+            style="display: none;" 
+            placeholder="Write your story in Markdown..."
+          ></textarea>
+
+          <input 
+            type="file" 
+            id="story-inline-photo-file" 
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+            class="visually-hidden-file" 
+          />
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="writer-footer">
+          <div class="stats">
+            <span id="story-words-display">0 words</span>
+            <span class="dot">•</span>
+            <span id="story-readtime-display">1 min read</span>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="cancel-btn form-discard-btn">Discard</button>
+            <button type="submit" class="save-btn" id="story-save-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Publish Story</span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .write-page-container {
+    width: 100%;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+  }
+
+  /* Lock Screen */
+  .author-desk-lock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 55vh;
+  }
+
+  .lock-card {
+    text-align: center;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--card-shadow);
+    padding: 3rem 2.5rem;
+    max-width: 480px;
+    width: 100%;
+  }
+
+  .lock-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.25rem;
+    border-radius: 50%;
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(158, 86, 56, 0.2);
+  }
+
+  .lock-kicker {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .lock-title {
+    font-size: 1.85rem;
+    font-weight: 500;
+    margin: 0 0 0.75rem;
+    color: var(--text-primary);
+  }
+
+  .lock-desc {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 2rem;
+  }
+
+  .lock-login-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--accent-ink);
+    color: var(--bg-primary);
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.92rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .lock-login-btn:hover {
+    background-color: var(--accent-terra);
+    transform: translateY(-2px);
+  }
+
+  /* Top Bar */
+  .writer-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-light);
+    flex-wrap: wrap;
+  }
+
+  .writer-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.85rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .writer-back-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .composer-type-tabs {
+    display: flex;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    gap: 3px;
+  }
+
+  .type-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: transparent;
+    border: none;
+    padding: 0.45rem 1rem;
+    border-radius: 4px;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .type-tab:hover {
+    color: var(--text-primary);
+  }
+
+  .type-tab.active {
+    background-color: var(--bg-card);
+    color: var(--accent-terra);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  .composer-editing-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background-color: rgba(158, 86, 56, 0.1);
+    color: var(--accent-terra);
+    border: 1px solid rgba(158, 86, 56, 0.25);
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+  }
+
+  /* Form Elements */
+  .writer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .form-title-row input.title-input {
+    width: 100%;
+    font-family: var(--font-serif);
+    font-size: 2.15rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.35rem 0;
+    outline: none;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+  }
+
+  .form-title-row input.title-input:focus {
+    border-bottom-color: var(--accent-terra);
+  }
+
+  .form-title-row input.title-input::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+
+  /* ==================== COLLAPSIBLE METADATA CARD ==================== */
+  .collapsible-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .collapsible-card:hover {
+    border-color: var(--border-strong);
+  }
+
+  .collapsible-header-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1.15rem;
+    background-color: var(--bg-subtle);
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    gap: 0.75rem;
+    transition: background-color 0.15s ease;
+    user-select: none;
+  }
+
+  .collapsible-header-btn:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  :global([data-theme="dark"]) .collapsible-header-btn:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .collapsible-icon-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(158, 86, 56, 0.12);
+    color: var(--accent-terra);
+    flex-shrink: 0;
+  }
+
+  .collapsible-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  .collapsible-summary-badge {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    padding: 0.15rem 0.55rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .collapsible-toggle-state {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .chevron-icon {
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+  }
+
+  .collapsible-content {
+    padding: 1.25rem 1.25rem 1.5rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    animation: fadeIn 0.25s ease;
+  }
+
+  /* Collapsed state */
+  .collapsible-card.collapsed .collapsible-content {
+    display: none;
+  }
+
+  .collapsible-card.collapsed .chevron-icon {
+    transform: rotate(-90deg);
+  }
+
+  /* Metadata grids */
+  .metadata-grid, .story-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+
+  .meta-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .meta-field label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .meta-input, .meta-select, .meta-textarea {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.75rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  .meta-input:focus, .meta-select:focus, .meta-textarea:focus {
+    border-color: var(--accent-terra);
+    background-color: var(--bg-card);
+  }
+
+  /* Cover Photo Fields */
+  .thumbnail-field {
+    background-color: var(--bg-subtle);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .thumbnail-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .thumb-mode-toggle {
+    display: flex;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .thumb-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .thumb-mode-btn.active {
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+  }
+
+  .visually-hidden-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+  }
+
+  .thumb-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem 1rem;
+    background-color: var(--bg-card);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    text-align: center;
+    cursor: pointer;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+  }
+
+  .thumb-dropzone:hover, .thumb-dropzone.drag-active {
+    border-color: var(--accent-terra);
+    background-color: rgba(158, 86, 56, 0.04);
+  }
+
+  .dropzone-icon-wrap {
+    color: var(--accent-terra);
+  }
+
+  .dropzone-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: block;
+  }
+
+  .dropzone-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: block;
+  }
+
+  .browse-btn {
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 500;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  .thumb-presets-row {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+
+  .preset-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .preset-pill {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 9999px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .preset-pill:hover {
+    border-color: var(--accent-terra);
+    color: var(--accent-terra);
+  }
+
+  .thumb-preview-box {
+    margin-top: 0.75rem;
+  }
+
+  .thumb-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem;
+  }
+
+  .thumb-preview-image-wrap {
+    width: 90px;
+    height: 56px;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: var(--bg-subtle);
+    flex-shrink: 0;
+  }
+
+  .thumb-preview-image-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .thumb-preview-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .thumb-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    color: #38a169;
+    font-weight: 600;
+  }
+
+  .thumb-card-actions {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .thumb-card-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+
+  .thumb-card-btn.remove-btn:hover {
+    color: #e53e3e;
+    border-color: #e53e3e;
+  }
+
+  /* ==================== RICH TEXT EDITOR ==================== */
+  .rich-editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: visible;
+    position: relative;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .rich-editor-wrapper:focus-within {
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 2px rgba(158, 86, 56, 0.12);
+  }
+
+  /* Sticky Toolbar */
+  .rich-toolbar {
+    position: sticky;
+    top: var(--header-height, 70px);
+    z-index: 25;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-light);
+    border-top-left-radius: calc(var(--radius-md) - 1px);
+    border-top-right-radius: calc(var(--radius-md) - 1px);
+    flex-wrap: wrap;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    user-select: none;
+  }
+
+  .tb-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .tb-sep {
+    width: 1px;
+    height: 18px;
+    background-color: var(--border-light);
+    margin: 0 0.25rem;
+  }
+
+  .view-switcher-group {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 2px;
+  }
+
+  .view-pill {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.74rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .view-pill.active {
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+    font-weight: 600;
+  }
+
+  .tb-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.35rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-family: inherit;
+    transition: all 0.12s ease;
+  }
+
+  .tb-btn:hover {
+    background-color: var(--bg-card);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+  }
+
+  .tb-btn:active {
+    transform: scale(0.95);
+  }
+
+  .tb-text-btn {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .tb-accent-btn {
+    background-color: rgba(158, 86, 56, 0.08);
+    border-color: rgba(158, 86, 56, 0.2);
+    color: var(--accent-terra);
+    gap: 0.3rem;
+    padding: 0 0.55rem;
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .tb-accent-btn:hover {
+    background-color: var(--accent-terra);
+    color: var(--bg-primary);
+    border-color: var(--accent-terra);
+  }
+
+  /* Visual Editor Canvas (WYSIWYG) */
+  .rich-editor-canvas {
+    min-height: 480px;
+    padding: 1.6rem 1.75rem 3rem;
+    outline: none;
+    font-family: var(--font-serif);
+    font-size: 1.14rem;
+    line-height: 1.85;
+    color: var(--text-primary);
+    box-sizing: border-box;
+    cursor: text;
+    border-bottom-left-radius: calc(var(--radius-md) - 1px);
+    border-bottom-right-radius: calc(var(--radius-md) - 1px);
+  }
+
+  .rich-editor-canvas > *:first-child {
+    margin-top: 0 !important;
+  }
+
+  .rich-editor-canvas:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    opacity: 0.7;
+    pointer-events: none;
+    font-style: italic;
+  }
+
+  /* Raw Markdown Textarea View */
+  .raw-markdown-textarea {
+    min-height: 480px;
+    width: 100%;
+    padding: 1.6rem 1.75rem 3rem;
+    border: none;
+    background: transparent;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    outline: none;
+    resize: vertical;
+    box-sizing: border-box;
+    border-bottom-left-radius: calc(var(--radius-md) - 1px);
+    border-bottom-right-radius: calc(var(--radius-md) - 1px);
+  }
+
+  /* Figures inside rich editor */
+  :global(.rich-figure) {
+    margin: 1.75rem 0;
+    text-align: center;
+  }
+
+  :global(.rich-figure img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.rich-figure figcaption) {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.45rem;
+  }
+
+  /* Footer Actions */
+  .writer-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-light);
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .stats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.84rem;
+    color: var(--text-muted);
+  }
+
+  .actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .cancel-btn {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1.15rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .cancel-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .save-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--accent-ink);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.65rem 1.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .save-btn:hover {
+    background-color: var(--accent-terra);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(158, 86, 56, 0.2);
+  }
+
+  .save-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+</style>
+
+<script>
+  import { 
+    isSupabaseConfigured,
+    supabase,
+    createSupabaseDiaryEntry, 
+    updateSupabaseDiaryEntry,
+    createSupabaseStory, 
+    updateSupabaseStory 
+  } from '../lib/supabase';
+  import { marked } from 'marked';
+
+  // Configure marked for clean GFM parsing
+  marked.setOptions({
+    gfm: true,
+    breaks: true
+  });
+
+  // Convert HTML from contenteditable into clean Markdown
+  function htmlToMarkdown(html: string): string {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+
+    function walk(node: Node): string {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const el = node as HTMLElement;
+      const tag = el.tagName.toLowerCase();
+      const inner = Array.from(el.childNodes).map(walk).join('');
+
+      switch (tag) {
+        case 'h1':
+          return `\n\n# ${inner.trim()}\n\n`;
+        case 'h2':
+          return `\n\n## ${inner.trim()}\n\n`;
+        case 'h3':
+          return `\n\n### ${inner.trim()}\n\n`;
+        case 'h4':
+          return `\n\n#### ${inner.trim()}\n\n`;
+        case 'strong':
+        case 'b':
+          return inner.trim() ? `**${inner}**` : '';
+        case 'em':
+        case 'i':
+          return inner.trim() ? `*${inner}*` : '';
+        case 'u':
+          return inner.trim() ? `<u>${inner}</u>` : '';
+        case 's':
+        case 'strike':
+        case 'del':
+          return inner.trim() ? `~~${inner}~~` : '';
+        case 'code':
+          return el.parentElement?.tagName.toLowerCase() === 'pre' ? inner : `\`${inner}\``;
+        case 'pre':
+          return `\n\n\`\`\`\n${inner.trim()}\n\`\`\`\n\n`;
+        case 'blockquote':
+          return `\n\n> ${inner.trim().replace(/\n/g, '\n> ')}\n\n`;
+        case 'ul':
+          return `\n\n${inner.trim()}\n\n`;
+        case 'ol':
+          return `\n\n${inner.trim()}\n\n`;
+        case 'li': {
+          const isOl = el.parentElement?.tagName.toLowerCase() === 'ol';
+          const idx = el.parentElement ? Array.from(el.parentElement.children).indexOf(el) + 1 : 1;
+          return `${isOl ? `${idx}.` : '-'} ${inner.trim()}\n`;
+        }
+        case 'a': {
+          const href = el.getAttribute('href') || '';
+          return `[${inner.trim()}](${href})`;
+        }
+        case 'figure': {
+          const img = el.querySelector('img');
+          const cap = el.querySelector('figcaption');
+          if (img) {
+            const src = img.getAttribute('src') || '';
+            const alt = cap?.textContent?.trim() || img.getAttribute('alt') || 'Photo';
+            return `\n\n![${alt}](${src})\n\n`;
+          }
+          return inner;
+        }
+        case 'img': {
+          const src = el.getAttribute('src') || '';
+          const alt = el.getAttribute('alt') || 'Photo';
+          return `\n\n![${alt}](${src})\n\n`;
+        }
+        case 'figcaption':
+          return '';
+        case 'hr':
+          return `\n\n---\n\n`;
+        case 'br':
+          return `\n`;
+        case 'p':
+        case 'div':
+          return inner.trim() ? `\n\n${inner.trim()}\n\n` : '';
+        default:
+          return inner;
+      }
+    }
+
+    const raw = walk(div);
+    return raw.replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Image compression helper (WebP canvas)
+  function compressImageFile(file: File, maxWidth = 1400, maxHeight = 900, quality = 0.82): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read image file'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          try {
+            const webp = canvas.toDataURL('image/webp', quality);
+            resolve(webp);
+          } catch (err) {
+            resolve(canvas.toDataURL('image/jpeg', quality));
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function initDedicatedWriter() {
+    const lockScreen = document.getElementById('author-desk-lock');
+    const workspace = document.getElementById('author-workspace');
+    const backBtn = document.getElementById('writer-back-btn');
+
+    // Parse URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('type') || params.get('mode');
+    const editSlug = params.get('slug');
+    const editId = params.get('id');
+
+    // 1. Auth Guard Check
+    let hasAuth = document.documentElement.getAttribute('data-author-authenticated') === 'true';
+    if (!hasAuth && isSupabaseConfigured()) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          hasAuth = true;
+          document.documentElement.setAttribute('data-author-authenticated', 'true');
+        }
+      } catch (e) {}
+    }
+
+    if (!hasAuth && isSupabaseConfigured()) {
+      if (lockScreen) lockScreen.style.display = 'flex';
+      if (workspace) workspace.style.display = 'none';
+      return;
+    } else {
+      if (lockScreen) lockScreen.style.display = 'none';
+      if (workspace) workspace.style.display = 'block';
+    }
+
+    const tabDiary = document.getElementById('tab-diary');
+    const tabStory = document.getElementById('tab-story');
+    const editTag = document.getElementById('composer-editing-tag');
+    const diaryForm = document.getElementById('diary-writer-form') as HTMLFormElement;
+    const storyForm = document.getElementById('story-writer-form') as HTMLFormElement;
+
+    let editingDiaryId: string | null = null;
+    let editingStoryId: string | null = null;
+    let currentMode: 'diary' | 'story' = typeParam === 'story' ? 'story' : 'diary';
+
+    // Navigation back & discard
+    backBtn?.addEventListener('click', () => {
+      if (editSlug) {
+        window.location.href = currentMode === 'diary' ? `/diary-entry?slug=${encodeURIComponent(editSlug)}` : `/story?slug=${encodeURIComponent(editSlug)}`;
+      } else {
+        window.location.href = currentMode === 'diary' ? '/diary' : '/stories';
+      }
+    });
+
+    document.querySelectorAll('.form-discard-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (confirm('Discard your unsaved changes and leave the writer?')) {
+          if (editSlug) {
+            window.location.href = currentMode === 'diary' ? `/diary-entry?slug=${encodeURIComponent(editSlug)}` : `/story?slug=${encodeURIComponent(editSlug)}`;
+          } else {
+            window.location.href = currentMode === 'diary' ? '/diary' : '/stories';
+          }
+        }
+      });
+    });
+
+    // Tab switcher
+    function switchMode(mode: 'diary' | 'story') {
+      currentMode = mode;
+      if (mode === 'diary') {
+        tabDiary?.classList.add('active');
+        tabDiary?.setAttribute('aria-selected', 'true');
+        tabStory?.classList.remove('active');
+        tabStory?.setAttribute('aria-selected', 'false');
+        if (diaryForm) diaryForm.style.display = 'flex';
+        if (storyForm) storyForm.style.display = 'none';
+      } else {
+        tabStory?.classList.add('active');
+        tabStory?.setAttribute('aria-selected', 'true');
+        tabDiary?.classList.remove('active');
+        tabDiary?.setAttribute('aria-selected', 'false');
+        if (storyForm) storyForm.style.display = 'flex';
+        if (diaryForm) diaryForm.style.display = 'none';
+      }
+    }
+
+    tabDiary?.addEventListener('click', () => switchMode('diary'));
+    tabStory?.addEventListener('click', () => switchMode('story'));
+
+    // ==================== COLLAPSIBLE METADATA PANELS ====================
+    // Diary Collapsible
+    const diaryCard = document.getElementById('diary-collapsible-card');
+    const diaryToggle = document.getElementById('diary-collapsible-toggle');
+    const diarySummary = document.getElementById('diary-summary-badge');
+    const diaryToggleLabel = document.getElementById('diary-toggle-label');
+
+    function updateDiaryBadge() {
+      const moodVal = (document.getElementById('entry-mood') as HTMLSelectElement)?.value || 'Reflective|🌧️';
+      const [moodName, moodEmoji] = moodVal.split('|');
+      const timeVal = (document.getElementById('entry-time') as HTMLInputElement)?.value.trim() || 'Today';
+      const locVal = (document.getElementById('entry-location') as HTMLInputElement)?.value.trim();
+      const hasCover = Boolean((document.getElementById('diary-cover-url') as HTMLInputElement)?.value.trim());
+
+      const parts = [`${moodEmoji} ${moodName}`, timeVal];
+      if (locVal) parts.push(locVal);
+      if (hasCover) parts.push('Cover Attached');
+      if (diarySummary) diarySummary.textContent = parts.join(' • ');
+    }
+
+    diaryToggle?.addEventListener('click', () => {
+      const isCollapsed = diaryCard?.classList.toggle('collapsed');
+      if (diaryToggleLabel) diaryToggleLabel.textContent = isCollapsed ? 'Show Details' : 'Hide Details';
+      diaryToggle?.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    });
+
+    ['entry-mood', 'entry-time', 'entry-location', 'entry-weather'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateDiaryBadge);
+      document.getElementById(id)?.addEventListener('change', updateDiaryBadge);
+    });
+
+    // Story Collapsible
+    const storyCard = document.getElementById('story-collapsible-card');
+    const storyToggle = document.getElementById('story-collapsible-toggle');
+    const storySummary = document.getElementById('story-summary-badge');
+    const storyToggleLabel = document.getElementById('story-toggle-label');
+
+    function updateStoryBadge() {
+      const catVal = (document.getElementById('story-category') as HTMLSelectElement)?.value || 'Short Story';
+      const subVal = (document.getElementById('story-subtitle') as HTMLInputElement)?.value.trim();
+      const hasCover = Boolean((document.getElementById('story-cover-url') as HTMLInputElement)?.value.trim());
+
+      const parts = [catVal];
+      if (subVal) parts.push(subVal.length > 25 ? subVal.substring(0, 25) + '…' : subVal);
+      if (hasCover) parts.push('Cover Attached');
+      if (storySummary) storySummary.textContent = parts.join(' • ');
+    }
+
+    storyToggle?.addEventListener('click', () => {
+      const isCollapsed = storyCard?.classList.toggle('collapsed');
+      if (storyToggleLabel) storyToggleLabel.textContent = isCollapsed ? 'Show Details' : 'Hide Details';
+      storyToggle?.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+    });
+
+    ['story-category', 'story-subtitle'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', updateStoryBadge);
+      document.getElementById(id)?.addEventListener('change', updateStoryBadge);
+    });
+
+    // Set default time for diary
+    const timeIn = document.getElementById('entry-time') as HTMLInputElement;
+    if (timeIn && !timeIn.value) {
+      timeIn.value = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      updateDiaryBadge();
+    }
+
+    // ==================== COVER PHOTO MANAGERS ====================
+    // Diary Cover
+    const diaryCoverUrlInput = document.getElementById('diary-cover-url') as HTMLInputElement;
+    const diaryFileInput = document.getElementById('diary-cover-file') as HTMLInputElement;
+    const diaryDropzone = document.getElementById('diary-thumb-dropzone');
+    const diaryBrowsePhotoBtn = document.getElementById('diary-browse-photo-btn');
+    const diaryPreviewBox = document.getElementById('diary-thumb-preview-box');
+    const diaryPreviewImg = document.getElementById('diary-thumb-preview-img') as HTMLImageElement;
+    const diaryChangeThumbBtn = document.getElementById('diary-change-thumb-btn');
+    const diaryClearCoverBtn = document.getElementById('diary-clear-cover-btn');
+    const diaryUploadIndicator = document.getElementById('diary-thumb-uploading-indicator');
+    const btnDiaryModeUpload = document.getElementById('btn-diary-mode-upload');
+    const btnDiaryModeUrl = document.getElementById('btn-diary-mode-url');
+    const diaryUploadPanel = document.getElementById('diary-thumb-upload-panel');
+    const diaryUrlPanel = document.getElementById('diary-thumb-url-panel');
+
+    function updateDiaryThumbPreview(url: string) {
+      if (url && diaryPreviewBox && diaryPreviewImg) {
+        diaryPreviewImg.src = url;
+        diaryPreviewBox.style.display = 'block';
+        if (diaryDropzone) diaryDropzone.style.display = 'none';
+      } else if (diaryPreviewBox) {
+        diaryPreviewBox.style.display = 'none';
+        if (diaryDropzone) diaryDropzone.style.display = 'flex';
+      }
+      updateDiaryBadge();
+    }
+
+    async function processSelectedDiaryImage(file: File) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (diaryUploadIndicator) diaryUploadIndicator.style.display = 'flex';
+      try {
+        const compressed = await compressImageFile(file, 1400, 900, 0.82);
+        if (diaryCoverUrlInput) diaryCoverUrlInput.value = compressed;
+        updateDiaryThumbPreview(compressed);
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const res = e.target?.result as string;
+          if (diaryCoverUrlInput) diaryCoverUrlInput.value = res;
+          updateDiaryThumbPreview(res);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        if (diaryUploadIndicator) diaryUploadIndicator.style.display = 'none';
+      }
+    }
+
+    btnDiaryModeUpload?.addEventListener('click', () => {
+      btnDiaryModeUpload.classList.add('active');
+      btnDiaryModeUrl?.classList.remove('active');
+      if (diaryUploadPanel) diaryUploadPanel.style.display = 'block';
+      if (diaryUrlPanel) diaryUrlPanel.style.display = 'none';
+    });
+
+    btnDiaryModeUrl?.addEventListener('click', () => {
+      btnDiaryModeUrl.classList.add('active');
+      btnDiaryModeUpload?.classList.remove('active');
+      if (diaryUrlPanel) diaryUrlPanel.style.display = 'block';
+      if (diaryUploadPanel) diaryUploadPanel.style.display = 'none';
+    });
+
+    diaryBrowsePhotoBtn?.addEventListener('click', (e) => { e.stopPropagation(); diaryFileInput?.click(); });
+    diaryChangeThumbBtn?.addEventListener('click', (e) => { e.stopPropagation(); diaryFileInput?.click(); });
+    diaryDropzone?.addEventListener('click', () => diaryFileInput?.click());
+    diaryDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); diaryDropzone.classList.add('drag-active'); });
+    diaryDropzone?.addEventListener('dragleave', () => diaryDropzone.classList.remove('drag-active'));
+    diaryDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      diaryDropzone.classList.remove('drag-active');
+      if (e.dataTransfer?.files?.[0]) processSelectedDiaryImage(e.dataTransfer.files[0]);
+    });
+    diaryFileInput?.addEventListener('change', () => {
+      if (diaryFileInput.files?.[0]) processSelectedDiaryImage(diaryFileInput.files[0]);
+    });
+    diaryCoverUrlInput?.addEventListener('input', () => updateDiaryThumbPreview(diaryCoverUrlInput.value.trim()));
+    diaryClearCoverBtn?.addEventListener('click', () => {
+      if (diaryCoverUrlInput) diaryCoverUrlInput.value = '';
+      if (diaryFileInput) diaryFileInput.value = '';
+      updateDiaryThumbPreview('');
+    });
+    document.querySelectorAll('.diary-preset-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        const img = (e.currentTarget as HTMLElement).dataset.img || '';
+        if (diaryCoverUrlInput) {
+          diaryCoverUrlInput.value = img;
+          updateDiaryThumbPreview(img);
+        }
+      });
+    });
+
+    // Story Cover
+    const storyCoverUrlInput = document.getElementById('story-cover-url') as HTMLInputElement;
+    const storyFileInput = document.getElementById('story-cover-file') as HTMLInputElement;
+    const storyDropzone = document.getElementById('thumb-dropzone');
+    const storyBrowsePhotoBtn = document.getElementById('browse-photo-btn');
+    const storyPreviewBox = document.getElementById('thumb-preview-box');
+    const storyPreviewImg = document.getElementById('thumb-preview-img') as HTMLImageElement;
+    const storyChangeThumbBtn = document.getElementById('change-thumb-btn');
+    const storyClearCoverBtn = document.getElementById('clear-cover-btn');
+    const storyUploadIndicator = document.getElementById('thumb-uploading-indicator');
+    const btnModeUpload = document.getElementById('btn-mode-upload');
+    const btnModeUrl = document.getElementById('btn-mode-url');
+    const uploadPanel = document.getElementById('thumb-upload-panel');
+    const urlPanel = document.getElementById('thumb-url-panel');
+
+    function updateStoryThumbPreview(url: string) {
+      if (url && storyPreviewBox && storyPreviewImg) {
+        storyPreviewImg.src = url;
+        storyPreviewBox.style.display = 'block';
+        if (storyDropzone) storyDropzone.style.display = 'none';
+      } else if (storyPreviewBox) {
+        storyPreviewBox.style.display = 'none';
+        if (storyDropzone) storyDropzone.style.display = 'flex';
+      }
+      updateStoryBadge();
+    }
+
+    async function processSelectedStoryImage(file: File) {
+      if (!file || !file.type.startsWith('image/')) return;
+      if (storyUploadIndicator) storyUploadIndicator.style.display = 'flex';
+      try {
+        const compressed = await compressImageFile(file, 1400, 900, 0.82);
+        if (storyCoverUrlInput) storyCoverUrlInput.value = compressed;
+        updateStoryThumbPreview(compressed);
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const res = e.target?.result as string;
+          if (storyCoverUrlInput) storyCoverUrlInput.value = res;
+          updateStoryThumbPreview(res);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        if (storyUploadIndicator) storyUploadIndicator.style.display = 'none';
+      }
+    }
+
+    btnModeUpload?.addEventListener('click', () => {
+      btnModeUpload.classList.add('active');
+      btnModeUrl?.classList.remove('active');
+      if (uploadPanel) uploadPanel.style.display = 'block';
+      if (urlPanel) urlPanel.style.display = 'none';
+    });
+
+    btnModeUrl?.addEventListener('click', () => {
+      btnModeUrl.classList.add('active');
+      btnModeUpload?.classList.remove('active');
+      if (urlPanel) urlPanel.style.display = 'block';
+      if (uploadPanel) uploadPanel.style.display = 'none';
+    });
+
+    storyBrowsePhotoBtn?.addEventListener('click', (e) => { e.stopPropagation(); storyFileInput?.click(); });
+    storyChangeThumbBtn?.addEventListener('click', (e) => { e.stopPropagation(); storyFileInput?.click(); });
+    storyDropzone?.addEventListener('click', () => storyFileInput?.click());
+    storyDropzone?.addEventListener('dragover', (e) => { e.preventDefault(); storyDropzone.classList.add('drag-active'); });
+    storyDropzone?.addEventListener('dragleave', () => storyDropzone.classList.remove('drag-active'));
+    storyDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      storyDropzone.classList.remove('drag-active');
+      if (e.dataTransfer?.files?.[0]) processSelectedStoryImage(e.dataTransfer.files[0]);
+    });
+    storyFileInput?.addEventListener('change', () => {
+      if (storyFileInput.files?.[0]) processSelectedStoryImage(storyFileInput.files[0]);
+    });
+    storyCoverUrlInput?.addEventListener('input', () => updateStoryThumbPreview(storyCoverUrlInput.value.trim()));
+    storyClearCoverBtn?.addEventListener('click', () => {
+      if (storyCoverUrlInput) storyCoverUrlInput.value = '';
+      if (storyFileInput) storyFileInput.value = '';
+      updateStoryThumbPreview('');
+    });
+    document.querySelectorAll('.preset-pill:not(.diary-preset-pill)').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        const img = (e.currentTarget as HTMLElement).dataset.img || '';
+        if (storyCoverUrlInput) {
+          storyCoverUrlInput.value = img;
+          updateStoryThumbPreview(img);
+        }
+      });
+    });
+
+    // ==================== RICH TEXT EDITORS SETUP ====================
+    function setupRichTextEditor(options: {
+      toolbarId: string;
+      canvasId: string;
+      markdownId: string;
+      viewVisualId: string;
+      viewMarkdownId: string;
+      linkBtnId: string;
+      photoBtnId: string;
+      photoFileId: string;
+      wordsDisplayId: string;
+      readtimeDisplayId: string;
+    }) {
+      const toolbar = document.getElementById(options.toolbarId);
+      const canvas = document.getElementById(options.canvasId) as HTMLElement;
+      const markdownArea = document.getElementById(options.markdownId) as HTMLTextAreaElement;
+      const btnVisual = document.getElementById(options.viewVisualId);
+      const btnMarkdown = document.getElementById(options.viewMarkdownId);
+      const linkBtn = document.getElementById(options.linkBtnId);
+      const photoBtn = document.getElementById(options.photoBtnId);
+      const photoFile = document.getElementById(options.photoFileId) as HTMLInputElement;
+      const wordsEl = document.getElementById(options.wordsDisplayId);
+      const readEl = document.getElementById(options.readtimeDisplayId);
+
+      let currentView: 'visual' | 'markdown' = 'visual';
+
+      // Update word count and reading time
+      function updateMetrics() {
+        const text = currentView === 'visual' ? (canvas?.innerText || '') : (markdownArea?.value || '');
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        const readTime = Math.max(1, Math.ceil(words / 180));
+        if (wordsEl) wordsEl.textContent = `${words} words`;
+        if (readEl) readEl.textContent = `${readTime} min read`;
+      }
+
+      canvas?.addEventListener('input', updateMetrics);
+      markdownArea?.addEventListener('input', updateMetrics);
+
+      // View toggle (Visual vs Markdown)
+      function setView(view: 'visual' | 'markdown') {
+        if (view === currentView) return;
+        currentView = view;
+        if (view === 'markdown') {
+          btnMarkdown?.classList.add('active');
+          btnVisual?.classList.remove('active');
+          // HTML -> Markdown
+          const md = htmlToMarkdown(canvas.innerHTML);
+          markdownArea.value = md;
+          canvas.style.display = 'none';
+          markdownArea.style.display = 'block';
+          markdownArea.focus();
+        } else {
+          btnVisual?.classList.add('active');
+          btnMarkdown?.classList.remove('active');
+          // Markdown -> HTML
+          const html = marked.parse(markdownArea.value) as string;
+          canvas.innerHTML = html;
+          markdownArea.style.display = 'none';
+          canvas.style.display = 'block';
+          canvas.focus();
+        }
+        updateMetrics();
+      }
+
+      btnVisual?.addEventListener('click', () => setView('visual'));
+      btnMarkdown?.addEventListener('click', () => setView('markdown'));
+
+      // Toolbar button handlers (prevent mousedown to preserve editor selection)
+      toolbar?.querySelectorAll('.tb-btn').forEach(btn => {
+        btn.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+        });
+      });
+
+      // Standard formatting commands (bold, italic, underline, strike, lists, hr, undo, redo)
+      toolbar?.querySelectorAll('[data-cmd]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (currentView !== 'visual') setView('visual');
+          canvas.focus();
+          const cmd = (btn as HTMLElement).dataset.cmd;
+          if (cmd) {
+            document.execCommand(cmd, false);
+            updateMetrics();
+          }
+        });
+      });
+
+      // Block formatting (h2, h3, p, blockquote, pre)
+      toolbar?.querySelectorAll('[data-format]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (currentView !== 'visual') setView('visual');
+          canvas.focus();
+          const tag = (btn as HTMLElement).dataset.format;
+          if (tag) {
+            document.execCommand('formatBlock', false, `<${tag}>`);
+            updateMetrics();
+          }
+        });
+      });
+
+      // Link creation
+      linkBtn?.addEventListener('click', () => {
+        if (currentView !== 'visual') setView('visual');
+        canvas.focus();
+        const url = prompt('Enter link URL (e.g. https://...):');
+        if (url && url.trim()) {
+          document.execCommand('createLink', false, url.trim());
+          updateMetrics();
+        }
+      });
+
+      // Photo insertion
+      photoBtn?.addEventListener('click', () => {
+        photoFile?.click();
+      });
+
+      photoFile?.addEventListener('change', async () => {
+        if (!photoFile.files || !photoFile.files[0]) return;
+        const file = photoFile.files[0];
+        try {
+          const comp = await compressImageFile(file, 1400, 900, 0.82);
+          const caption = prompt('Caption for this photo (optional):') || file.name.replace(/\.[^/.]+$/, '');
+          if (currentView === 'visual') {
+            canvas.focus();
+            const figureHtml = `
+              <figure class="rich-figure">
+                <img src="${comp}" alt="${caption}" />
+                ${caption && caption !== 'Photo' ? `<figcaption contenteditable="true">${caption}</figcaption>` : ''}
+              </figure>
+              <p><br></p>
+            `;
+            document.execCommand('insertHTML', false, figureHtml);
+          } else {
+            const mdSnippet = `\n\n![${caption}](${comp})\n\n`;
+            const start = markdownArea.selectionStart;
+            const end = markdownArea.selectionEnd;
+            markdownArea.value = markdownArea.value.substring(0, start) + mdSnippet + markdownArea.value.substring(end);
+          }
+          updateMetrics();
+        } catch (e) {}
+        photoFile.value = '';
+      });
+
+      // Keyboard shortcuts
+      canvas?.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+          e.preventDefault();
+          document.execCommand('bold');
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
+          e.preventDefault();
+          document.execCommand('italic');
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
+          e.preventDefault();
+          document.execCommand('underline');
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+          e.preventDefault();
+          const url = prompt('Enter link URL:');
+          if (url && url.trim()) document.execCommand('createLink', false, url.trim());
+        }
+      });
+
+      return {
+        getContentMarkdown: () => {
+          if (currentView === 'visual') {
+            return htmlToMarkdown(canvas.innerHTML);
+          }
+          return markdownArea.value.trim();
+        },
+        setContent: (rawMarkdown: string) => {
+          markdownArea.value = rawMarkdown;
+          canvas.innerHTML = marked.parse(rawMarkdown) as string;
+          canvas.scrollTop = 0;
+          markdownArea.scrollTop = 0;
+          const wrapper = canvas.closest('.rich-editor-wrapper') as HTMLElement | null;
+          if (wrapper) wrapper.scrollTop = 0;
+          updateMetrics();
+        },
+        updateMetrics
+      };
+    }
+
+    const diaryEditor = setupRichTextEditor({
+      toolbarId: 'diary-toolbar',
+      canvasId: 'diary-rich-canvas',
+      markdownId: 'diary-raw-markdown',
+      viewVisualId: 'diary-view-visual',
+      viewMarkdownId: 'diary-view-markdown',
+      linkBtnId: 'diary-insert-link-btn',
+      photoBtnId: 'diary-insert-photo-btn',
+      photoFileId: 'diary-inline-photo-file',
+      wordsDisplayId: 'word-count-display',
+      readtimeDisplayId: 'read-time-display'
+    });
+
+    const storyEditor = setupRichTextEditor({
+      toolbarId: 'story-toolbar',
+      canvasId: 'story-rich-canvas',
+      markdownId: 'story-raw-markdown',
+      viewVisualId: 'story-view-visual',
+      viewMarkdownId: 'story-view-markdown',
+      linkBtnId: 'story-insert-link-btn',
+      photoBtnId: 'story-insert-photo-btn',
+      photoFileId: 'story-inline-photo-file',
+      wordsDisplayId: 'story-words-display',
+      readtimeDisplayId: 'story-readtime-display'
+    });
+
+    // ==================== LOAD EDIT DATA IF SPECIFIED ====================
+    async function loadEditData() {
+      if (typeParam === 'story') {
+        switchMode('story');
+      } else {
+        switchMode('diary');
+      }
+
+      if (typeParam === 'diary' && (editSlug || editId)) {
+        if (editTag) {
+          editTag.textContent = 'Editing Journal Entry';
+          editTag.style.display = 'inline-block';
+        }
+        const saveBtn = document.getElementById('diary-save-btn');
+        if (saveBtn) {
+          const span = saveBtn.querySelector('span');
+          if (span) span.textContent = 'Update Entry';
+        }
+
+        let entry: any = null;
+        if (isSupabaseConfigured()) {
+          try {
+            let q = supabase.from('diary_entries').select('*');
+            if (editId) q = q.eq('id', editId);
+            else if (editSlug) q = q.eq('slug', editSlug);
+            const { data } = await q.single();
+            if (data) entry = data;
+          } catch (e) {}
+        }
+        if (!entry) {
+          try {
+            const list = JSON.parse(localStorage.getItem('custom_diary_entries') || '[]');
+            entry = list.find((x: any) => x.id === editId || x.slug === editSlug);
+          } catch (e) {}
+        }
+
+        if (entry) {
+          editingDiaryId = entry.id;
+          const titleInput = document.getElementById('entry-title') as HTMLInputElement;
+          const moodSelect = document.getElementById('entry-mood') as HTMLSelectElement;
+          const locInput = document.getElementById('entry-location') as HTMLInputElement;
+          const weatherInput = document.getElementById('entry-weather') as HTMLInputElement;
+
+          if (titleInput) titleInput.value = entry.title || '';
+          if (timeIn) timeIn.value = entry.time_of_day || entry.timeOfDay || '';
+          if (locInput) locInput.value = entry.location || '';
+          if (weatherInput) weatherInput.value = entry.weather || '';
+
+          if (moodSelect) {
+            const moodName = entry.mood || 'Reflective';
+            for (let i = 0; i < moodSelect.options.length; i++) {
+              if (moodSelect.options[i].value.startsWith(moodName)) {
+                moodSelect.selectedIndex = i;
+                break;
+              }
+            }
+          }
+
+          let coverVal = entry.cover_image || entry.coverImage || '';
+          let diaryContent = Array.isArray(entry.content) ? [...entry.content] : (typeof entry.content === 'string' ? [entry.content] : []);
+          if (!coverVal && diaryContent.length > 0 && typeof diaryContent[0] === 'string' && diaryContent[0].startsWith('__COVER__:')) {
+            coverVal = diaryContent[0].replace('__COVER__:', '').trim();
+            diaryContent = diaryContent.slice(1);
+          }
+          diaryContent = diaryContent.filter((c: string) => typeof c === 'string' && !c.startsWith('__COVER__:'));
+
+          if (diaryCoverUrlInput) {
+            diaryCoverUrlInput.value = coverVal;
+            updateDiaryThumbPreview(coverVal);
+            if (coverVal && !coverVal.startsWith('data:')) {
+              btnDiaryModeUrl?.click();
+            } else if (coverVal) {
+              btnDiaryModeUpload?.click();
+            }
+          }
+
+          diaryEditor?.setContent(diaryContent.join('\n\n'));
+          updateDiaryBadge();
+          if (diaryCard && !diaryCard.classList.contains('collapsed')) {
+            diaryCard.classList.add('collapsed');
+            if (diaryToggleLabel) diaryToggleLabel.textContent = 'Show Details';
+            diaryToggle?.setAttribute('aria-expanded', 'false');
+          }
+        }
+      } else if (typeParam === 'story' && (editSlug || editId)) {
+        if (editTag) {
+          editTag.textContent = 'Editing Story';
+          editTag.style.display = 'inline-block';
+        }
+        const saveBtn = document.getElementById('story-save-btn');
+        if (saveBtn) {
+          const span = saveBtn.querySelector('span');
+          if (span) span.textContent = 'Update Story';
+        }
+
+        let story: any = null;
+        if (isSupabaseConfigured()) {
+          try {
+            let q = supabase.from('stories').select('*');
+            if (editId) q = q.eq('id', editId);
+            else if (editSlug) q = q.eq('slug', editSlug);
+            const { data } = await q.single();
+            if (data) story = data;
+          } catch (e) {}
+        }
+        if (!story) {
+          try {
+            const list = JSON.parse(localStorage.getItem('custom_stories') || '[]');
+            story = list.find((x: any) => x.id === editId || x.slug === editSlug);
+          } catch (e) {}
+        }
+
+        if (story) {
+          editingStoryId = story.id;
+          const titleInput = document.getElementById('story-title') as HTMLInputElement;
+          const subInput = document.getElementById('story-subtitle') as HTMLInputElement;
+          const catSelect = document.getElementById('story-category') as HTMLSelectElement;
+          const excerptInput = document.getElementById('story-excerpt') as HTMLTextAreaElement;
+
+          if (titleInput) titleInput.value = story.title || '';
+          if (subInput) subInput.value = story.subtitle || '';
+          if (catSelect && story.category) catSelect.value = story.category;
+          if (excerptInput) excerptInput.value = story.excerpt || '';
+
+          let storyCoverVal = story.cover_image || story.coverImage || '';
+          let storyContent = Array.isArray(story.content) ? [...story.content] : (typeof story.content === 'string' ? [story.content] : []);
+          if (!storyCoverVal && storyContent.length > 0 && typeof storyContent[0] === 'string' && storyContent[0].startsWith('__COVER__:')) {
+            storyCoverVal = storyContent[0].replace('__COVER__:', '').trim();
+            storyContent = storyContent.slice(1);
+          }
+          storyContent = storyContent.filter((c: string) => typeof c === 'string' && !c.startsWith('__COVER__:'));
+
+          if (storyCoverUrlInput) {
+            storyCoverUrlInput.value = storyCoverVal;
+            updateStoryThumbPreview(storyCoverVal);
+            if (storyCoverVal && !storyCoverVal.startsWith('data:')) {
+              btnModeUrl?.click();
+            } else if (storyCoverVal) {
+              btnModeUpload?.click();
+            }
+          }
+
+          storyEditor?.setContent(storyContent.join('\n\n'));
+          updateStoryBadge();
+          if (storyCard && !storyCard.classList.contains('collapsed')) {
+            storyCard.classList.add('collapsed');
+            if (storyToggleLabel) storyToggleLabel.textContent = 'Show Details';
+            storyToggle?.setAttribute('aria-expanded', 'false');
+          }
+        }
+      }
+    }
+
+    loadEditData();
+
+    // ==================== SUBMIT HANDLERS ====================
+    diaryForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('diary-save-btn') as HTMLButtonElement;
+      if (!saveBtn) return;
+
+      const titleInput = document.getElementById('entry-title') as HTMLInputElement;
+      const moodSelect = document.getElementById('entry-mood') as HTMLSelectElement;
+      const locationInput = document.getElementById('entry-location') as HTMLInputElement;
+      const weatherInput = document.getElementById('entry-weather') as HTMLInputElement;
+
+      const title = titleInput.value.trim();
+      const [moodName, moodEmoji] = (moodSelect?.value || 'Reflective|🌧️').split('|');
+      const timeOfDay = timeIn?.value.trim() || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const location = locationInput?.value.trim() || '';
+      const weather = weatherInput?.value.trim() || '';
+      const coverImage = diaryCoverUrlInput?.value.trim() || '';
+
+      const rawMarkdown = diaryEditor?.getContentMarkdown() || '';
+      const paragraphs = rawMarkdown.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+      if (paragraphs.length === 0) {
+        alert('Please write some content before saving.');
+        return;
+      }
+
+      const words = rawMarkdown.trim().split(/\s+/).length;
+      const readTime = `${Math.max(1, Math.ceil(words / 180))} min read`;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        if (editingDiaryId) {
+          // UPDATE
+          if (isSupabaseConfigured()) {
+            try {
+              await updateSupabaseDiaryEntry(editingDiaryId, {
+                title,
+                content: paragraphs,
+                cover_image: coverImage,
+                mood: moodName,
+                mood_emoji: moodEmoji,
+                location,
+                weather,
+                time_of_day: timeOfDay,
+                read_time: readTime
+              });
+            } catch (err) {
+              console.warn('Supabase update fallback to local:', err);
+              const stored = localStorage.getItem('custom_diary_entries');
+              const list = stored ? JSON.parse(stored) : [];
+              const idx = list.findIndex((x: any) => x.id === editingDiaryId);
+              if (idx !== -1) {
+                list[idx] = { ...list[idx], title, coverImage, cover_image: coverImage, content: paragraphs, mood: moodName, moodEmoji, location, weather, timeOfDay, readTime };
+                localStorage.setItem('custom_diary_entries', JSON.stringify(list));
+              }
+            }
+          }
+          window.location.href = editSlug ? `/diary-entry?slug=${encodeURIComponent(editSlug)}` : '/diary';
+        } else {
+          // CREATE NEW
+          let targetSlug = 'entry-' + Date.now();
+          if (isSupabaseConfigured()) {
+            try {
+              const res = await createSupabaseDiaryEntry({
+                title,
+                content: paragraphs,
+                cover_image: coverImage,
+                mood: moodName,
+                mood_emoji: moodEmoji,
+                location,
+                weather,
+                time_of_day: timeOfDay,
+                read_time: readTime
+              });
+              if (res?.slug) targetSlug = res.slug;
+            } catch (err) {
+              console.warn('Supabase create fallback to local:', err);
+              const stored = localStorage.getItem('custom_diary_entries');
+              const entries = stored ? JSON.parse(stored) : [];
+              entries.unshift({
+                id: 'diary-' + Date.now(),
+                slug: targetSlug,
+                title,
+                coverImage,
+                cover_image: coverImage,
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+                timeOfDay,
+                location,
+                weather,
+                mood: moodName,
+                moodEmoji,
+                readTime,
+                content: paragraphs,
+                isCustom: true
+              });
+              localStorage.setItem('custom_diary_entries', JSON.stringify(entries));
+            }
+          }
+          window.location.href = `/diary-entry?slug=${targetSlug}`;
+        }
+      } catch (err: any) {
+        alert('Failed to save entry: ' + (err.message || err));
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save to Journal';
+      }
+    });
+
+    storyForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const saveBtn = document.getElementById('story-save-btn') as HTMLButtonElement;
+      if (!saveBtn) return;
+
+      const titleInput = document.getElementById('story-title') as HTMLInputElement;
+      const subInput = document.getElementById('story-subtitle') as HTMLInputElement;
+      const catSelect = document.getElementById('story-category') as HTMLSelectElement;
+      const excerptInput = document.getElementById('story-excerpt') as HTMLTextAreaElement;
+
+      const title = titleInput.value.trim();
+      const subtitle = subInput?.value.trim() || '';
+      const category = catSelect?.value || 'Short Story';
+      const excerpt = excerptInput?.value.trim() || '';
+      const coverImage = storyCoverUrlInput?.value.trim() || '';
+
+      const rawMarkdown = storyEditor?.getContentMarkdown() || '';
+      const paragraphs = rawMarkdown.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+      if (paragraphs.length === 0) {
+        alert('Please write some story content before publishing.');
+        return;
+      }
+
+      const words = rawMarkdown.trim().split(/\s+/).length;
+      const readTime = `${Math.max(1, Math.ceil(words / 180))} min read`;
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Publishing...';
+
+      try {
+        if (editingStoryId) {
+          // UPDATE
+          if (isSupabaseConfigured()) {
+            try {
+              await updateSupabaseStory(editingStoryId, {
+                title,
+                subtitle,
+                category,
+                excerpt,
+                cover_image: coverImage,
+                read_time: readTime,
+                content: paragraphs
+              });
+            } catch (err) {
+              console.warn('Supabase update fallback to local:', err);
+              const stored = localStorage.getItem('custom_stories');
+              const list = stored ? JSON.parse(stored) : [];
+              const idx = list.findIndex((x: any) => x.id === editingStoryId);
+              if (idx !== -1) {
+                list[idx] = { ...list[idx], title, subtitle, category, excerpt, cover_image: coverImage, readTime, content: paragraphs };
+                localStorage.setItem('custom_stories', JSON.stringify(list));
+              }
+            }
+          }
+          window.location.href = editSlug ? `/story?slug=${encodeURIComponent(editSlug)}` : '/stories';
+        } else {
+          // CREATE NEW
+          let targetSlug = 'story-' + Date.now();
+          if (isSupabaseConfigured()) {
+            try {
+              const res = await createSupabaseStory({
+                title,
+                subtitle,
+                category,
+                excerpt,
+                cover_image: coverImage,
+                read_time: readTime,
+                content: paragraphs
+              });
+              if (res?.slug) targetSlug = res.slug;
+            } catch (err) {
+              console.warn('Supabase create fallback to local:', err);
+              const stored = localStorage.getItem('custom_stories');
+              const list = stored ? JSON.parse(stored) : [];
+              list.unshift({
+                id: 'story-' + Date.now(),
+                slug: targetSlug,
+                title,
+                subtitle,
+                category,
+                excerpt,
+                cover_image: coverImage,
+                readTime,
+                date: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
+                content: paragraphs,
+                isCustom: true
+              });
+              localStorage.setItem('custom_stories', JSON.stringify(list));
+            }
+          }
+          window.location.href = `/story?slug=${targetSlug}`;
+        }
+      } catch (err: any) {
+        alert('Failed to publish story: ' + (err.message || err));
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Publish Story';
+      }
+    });
+  }
+
+  initDedicatedWriter();
+  document.addEventListener('astro:after-swap', initDedicatedWriter);
+</script>

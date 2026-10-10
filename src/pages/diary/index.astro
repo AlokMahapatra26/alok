@@ -35,19 +35,18 @@ import { diaryEntries } from '../../data/diary';
           <span>Lock Diary</span>
         </button>
 
-        <button 
-          type="button" 
+        <a 
+          href="/write?type=diary" 
           id="diary-page-write-btn" 
           class="log-entry-btn" 
           data-author-only
-          onclick="document.getElementById('open-writer-btn').click()"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 20h9"></path>
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
           </svg>
           <span>Log New Entry</span>
-        </button>
+        </a>
       </div>
     </header>
 
@@ -185,12 +184,14 @@ import { diaryEntries } from '../../data/diary';
     color: var(--bg-primary);
     background-color: var(--accent-terra);
     border-radius: var(--radius-sm);
+    text-decoration: none;
     transition: all 0.2s ease;
   }
 
   .log-entry-btn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+    color: var(--bg-primary);
   }
 
   .diary-toolbar {
@@ -828,13 +829,13 @@ import { diaryEntries } from '../../data/diary';
           <div class="empty-state-card" style="padding: 4rem 1.5rem; text-align: center; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background-color: var(--bg-card);">
             <p style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0.5rem;">No diary entries logged yet.</p>
             <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">Begin your journal by recording today's thoughts.</p>
-            <button type="button" class="log-entry-btn" data-author-only onclick="document.getElementById('open-writer-btn').click()">
+            <a href="/write?type=diary" class="log-entry-btn" data-author-only>
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 20h9"></path>
                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
               </svg>
               <span>Write First Entry</span>
-            </button>
+            </a>
           </div>
         `;
         if (noResults) noResults.style.display = 'none';
@@ -903,8 +904,8 @@ import { diaryEntries } from '../../data/diary';
           const target = e.currentTarget as HTMLElement;
           const id = target.dataset.entryId;
           const found = allEntries.find((item: any) => item.id === id);
-          if (found && typeof (window as any).openDiaryEditor === 'function') {
-            (window as any).openDiaryEditor(found);
+          if (found) {
+            window.location.href = `/write?type=diary&id=${encodeURIComponent(found.id)}&slug=${encodeURIComponent(found.slug || '')}`;
           }
         });
       });

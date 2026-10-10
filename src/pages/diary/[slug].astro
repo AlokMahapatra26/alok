@@ -20,11 +20,23 @@ interface Props {
 }
 
 const { entry, prevEntry, nextEntry } = Astro.props;
+
+import { marked } from 'marked';
+marked.setOptions({ gfm: true, breaks: true });
+
+let coverImage = entry.cover_image || entry.coverImage || '';
+let content = Array.isArray(entry.content) ? [...entry.content] : [];
+if (!coverImage && content.length > 0 && typeof content[0] === 'string' && content[0].startsWith('__COVER__:')) {
+  coverImage = content[0].replace('__COVER__:', '').trim();
+  content = content.slice(1);
+}
+content = content.filter((p: string) => typeof p === 'string' && !p.startsWith('__COVER__:'));
+const parsedContent = marked.parse(content.join('\n\n'));
 ---
 
 <BaseLayout
   title={`${entry.title} — Diary Log`}
-  description={entry.content[0]}
+  description={content[0] || entry.title}
   activePath="/diary"
 >
   <article class="content-container diary-reader-page">
@@ -37,13 +49,13 @@ const { entry, prevEntry, nextEntry } = Astro.props;
         <span>Back to Diary Archive</span>
       </a>
 
-      <button type="button" class="write-prompt-btn" data-author-only onclick="document.getElementById('open-writer-btn').click()">
+      <a href="/write?type=diary" class="write-prompt-btn" data-author-only>
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h9"></path>
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
         </svg>
         <span>Log Your Entry</span>
-      </button>
+      </a>
     </div>
 
     <!-- Diary Header -->
@@ -76,30 +88,12 @@ const { entry, prevEntry, nextEntry } = Astro.props;
       </div>
     </header>
 
-    {(entry.cover_image || entry.coverImage) && (
-      <div class="entry-cover-banner">
-        <img src={entry.cover_image || entry.coverImage} alt={entry.title} />
-      </div>
-    )}
+
 
     <div class="entry-divider"></div>
 
     <!-- Entry Content -->
-    <div class="prose entry-content">
-      {entry.content.map((para) => {
-        const trimmed = (para || '').trim();
-        const singleImg = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
-        if (singleImg) {
-          return (
-            <figure class="diary-body-figure">
-              <img src={singleImg[2]} alt={singleImg[1]} loading="lazy" class="diary-body-inline-img" />
-              {singleImg[1] && singleImg[1] !== 'Photo' && <figcaption class="diary-body-caption">{singleImg[1]}</figcaption>}
-            </figure>
-          );
-        }
-        return <p>{para}</p>;
-      })}
-    </div>
+    <div class="prose entry-content" set:html={parsedContent} />
 
     <!-- Footer Nav -->
     <footer class="entry-footer">
@@ -164,6 +158,7 @@ const { entry, prevEntry, nextEntry } = Astro.props;
     border-radius: var(--radius-sm);
     background-color: var(--bg-subtle);
     border: 1px solid var(--border-light);
+    text-decoration: none;
     transition: all 0.15s ease;
   }
 

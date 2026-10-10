@@ -479,8 +479,8 @@ import { stories } from '../../data/stories';
           const target = e.currentTarget as HTMLElement;
           const id = target.dataset.storyId;
           const found = allStories.find((item: any) => item.id === id);
-          if (found && typeof (window as any).openStoryEditor === 'function') {
-            (window as any).openStoryEditor(found);
+          if (found) {
+            window.location.href = `/write?type=story&id=${encodeURIComponent(found.id)}&slug=${encodeURIComponent(found.slug || '')}`;
           }
         });
       });

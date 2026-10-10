@@ -21,6 +21,18 @@ interface Props {
 }
 
 const { story, prevStory, nextStory } = Astro.props;
+
+import { marked } from 'marked';
+marked.setOptions({ gfm: true, breaks: true });
+
+let coverImage = story.cover_image || '';
+let content = Array.isArray(story.content) ? [...story.content] : [];
+if (!coverImage && content.length > 0 && typeof content[0] === 'string' && content[0].startsWith('__COVER__:')) {
+  coverImage = content[0].replace('__COVER__:', '').trim();
+  content = content.slice(1);
+}
+content = content.filter((p: string) => typeof p === 'string' && !p.startsWith('__COVER__:'));
+const parsedContent = marked.parse(content.join('\n\n'));
 ---
 
 <BaseLayout
@@ -77,20 +89,16 @@ const { story, prevStory, nextStory } = Astro.props;
       </div>
     </header>
 
-    {story.cover_image && (
+    {coverImage && (
       <div class="story-cover-banner">
-        <img src={story.cover_image} alt={story.title} class="story-cover-img" />
+        <img src={coverImage} alt={story.title} class="story-cover-img" />
       </div>
     )}
 
     <div class="article-divider"></div>
 
     <!-- Story Body -->
-    <div id="story-body" class="prose story-content">
-      {story.content.map((paragraph, idx) => (
-        <p class={idx === 0 ? 'drop-cap' : ''}>{paragraph}</p>
-      ))}
-    </div>
+    <div id="story-body" class="prose story-content" set:html={parsedContent} />
 
     <!-- Author Signoff / Endnote -->
     <footer class="story-article-footer">
