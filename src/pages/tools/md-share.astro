@@ -1,0 +1,1260 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Markdown Share & Beautiful Viewer — Alok Mahapatra Tools"
+  description="Paste or upload markdown files, render publication-grade typography, and share documents with instant links."
+  activePath="/tools"
+>
+  <div class="md-share-workspace">
+    <!-- Top App Navigation / Toolbar -->
+    <header class="workspace-header">
+      <div class="header-left">
+        <a href="/tools" class="back-tools-link" title="Back to Tools Directory">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          <span>Tools</span>
+        </a>
+        <div class="header-doc-title-group">
+          <span class="tool-tag-pill">MD Share</span>
+          <input 
+            type="text" 
+            id="doc-filename-input" 
+            class="doc-title-input" 
+            value="document.md" 
+            title="Click to rename document" 
+            aria-label="Document filename"
+          />
+        </div>
+      </div>
+
+      <!-- Center View Mode Toggles -->
+      <div class="view-mode-tabs" role="tablist" aria-label="View Mode">
+        <button type="button" class="view-tab active" data-mode="split" id="mode-split-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="12" y1="3" x2="12" y2="21"></line>
+          </svg>
+          <span>Split View</span>
+        </button>
+        <button type="button" class="view-tab" data-mode="preview" id="mode-preview-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>Preview Only</span>
+        </button>
+        <button type="button" class="view-tab" data-mode="editor" id="mode-editor-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <span>Raw Editor</span>
+        </button>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="header-actions">
+        <!-- Open local .md file -->
+        <label for="md-file-input" class="tool-btn btn-subtle" title="Open local .md or .txt file">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span class="btn-text-desktop">Open File</span>
+        </label>
+        <input type="file" id="md-file-input" accept=".md,.markdown,.txt" style="display: none;" />
+
+        <!-- Load sample -->
+        <button type="button" id="load-sample-btn" class="tool-btn btn-subtle" title="Load sample markdown document">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span class="btn-text-desktop">Sample</span>
+        </button>
+
+        <!-- Copy raw -->
+        <button type="button" id="copy-raw-btn" class="tool-btn btn-subtle" title="Copy raw markdown text">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span class="btn-text-desktop">Copy</span>
+        </button>
+
+        <!-- Download .md -->
+        <button type="button" id="download-md-btn" class="tool-btn btn-subtle" title="Download as .md file">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span class="btn-text-desktop">Export</span>
+        </button>
+
+        <!-- Primary: Share Link -->
+        <button type="button" id="share-link-btn" class="tool-btn btn-accent" title="Generate shareable link with document">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+          </svg>
+          <span>Share Link</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Shared Document Notification Banner (Shown when opened via shared URL) -->
+    <div id="shared-doc-banner" class="shared-doc-banner" style="display: none;">
+      <div class="banner-inner">
+        <span class="banner-icon">✦</span>
+        <span class="banner-text">Viewing shared markdown document. You can read, copy, or switch to the editor to modify it.</span>
+        <button type="button" id="banner-edit-btn" class="banner-action-btn">Open in Editor</button>
+      </div>
+    </div>
+
+    <!-- Main Editor / Preview Panes -->
+    <main class="workspace-main layout-split" id="workspace-main">
+      <!-- LEFT PANE: MARKDOWN INPUT -->
+      <section class="pane pane-editor" id="pane-editor">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-indicator">RAW</span>
+            <span class="pane-title">Markdown Input</span>
+          </div>
+          <div class="pane-stats">
+            <span id="char-count">0 chars</span>
+            <span>•</span>
+            <span id="word-count">0 words</span>
+            <span>•</span>
+            <span id="read-time">1 min read</span>
+          </div>
+        </div>
+
+        <div class="editor-textarea-wrap" id="drop-zone">
+          <textarea 
+            id="markdown-textarea" 
+            class="markdown-textarea" 
+            placeholder="# Paste your markdown here...&#10;&#10;Or drop a .md file directly onto this editor." 
+            spellcheck="false"
+          ></textarea>
+
+          <div class="drag-drop-overlay" id="drag-overlay">
+            <div class="drag-overlay-card">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Drop .md file to load</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANE: BEAUTIFULLY RENDERED PREVIEW -->
+      <section class="pane pane-preview" id="pane-preview">
+        <div class="pane-header">
+          <div class="pane-title-group">
+            <span class="pane-indicator live">PREVIEW</span>
+            <span class="pane-title">Rendered Publication</span>
+          </div>
+          <div class="preview-actions">
+            <button type="button" id="copy-html-btn" class="preview-btn" title="Copy rendered HTML">
+              <span>Copy HTML</span>
+            </button>
+            <button type="button" id="print-btn" class="preview-btn" title="Print or save as PDF">
+              <span>Print</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-scroll-container">
+          <article id="rendered-output" class="markdown-rendered-prose prose">
+            <!-- Parsed HTML rendered here dynamically -->
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <!-- Toast Notification Popup -->
+    <div id="toast-notification" class="toast-popup" role="status" aria-live="polite" style="display: none;">
+      <span id="toast-icon">✓</span>
+      <span id="toast-message">Copied to clipboard</span>
+    </div>
+  </div>
+</BaseLayout>
+
+<script>
+  import { marked } from 'marked';
+
+  // Configure marked for clean, GitHub-flavored markdown
+  marked.setOptions({
+    gfm: true,
+    breaks: true
+  });
+
+  const STORAGE_KEY = 'md_share_editor_draft';
+
+  const textarea = document.getElementById('markdown-textarea') as HTMLTextAreaElement;
+  const renderedOutput = document.getElementById('rendered-output') as HTMLElement;
+  const workspaceMain = document.getElementById('workspace-main') as HTMLElement;
+  const filenameInput = document.getElementById('doc-filename-input') as HTMLInputElement;
+
+  // Stats elements
+  const charCountEl = document.getElementById('char-count');
+  const wordCountEl = document.getElementById('word-count');
+  const readTimeEl = document.getElementById('read-time');
+
+  // Mode tabs
+  const tabSplit = document.getElementById('mode-split-btn');
+  const tabPreview = document.getElementById('mode-preview-btn');
+  const tabEditor = document.getElementById('mode-editor-btn');
+
+  // Sample markdown document
+  const SAMPLE_MARKDOWN = `# The Architecture of Memory
+> "We do not remember days, we remember moments."
+> — Cesare Pavese
+
+Memory is not an archival repository of static files. It is an active reconstruction — a living narrative reshaped every time we summon a recollection from silence.
+
+---
+
+## 1. Why Personal Writing Matters
+
+When you commit thoughts to an open ledger, three subtle transformations take place:
+
+1. **Clarity**: The ambiguity of unsaid words evaporates.
+2. **Permanence**: Insights transcend fleeting dopamine loops.
+3. **Dialogue**: Honest perspectives resonate with readers across distances.
+
+### Key Observations
+
+| Paradigm | Algorithmic Socials | Independent Journal |
+| :--- | :--- | :--- |
+| **Pacing** | Rapid, disposable bursts | Considered, reflective prose |
+| **Privacy** | Tracked and monetized | Minimalist, distraction-free |
+| **Longevity**| Disappears in minutes | Archived for decades |
+
+---
+
+## 2. A Fragment from the Notebook
+
+Here is a snippet of code demonstrating how we parse and share ideas without dependencies:
+
+\`\`\`typescript
+interface Thought {
+  author: string;
+  reflection: string;
+  timestamp: Date;
+}
+
+function shareThought(t: Thought): string {
+  // Compress and share with the open world
+  return \`https://alokmahapatra.com/tools/md-share#doc=\${encode(t.reflection)}\`;
+}
+\`\`\`
+
+### Progress & Milestones
+
+- [x] Create an unadorned space for honest writing
+- [x] Remove intrusive popups and trackers
+- [x] Provide publication-grade tools for prose
+- [ ] Read fifty timeless books this season
+
+---
+
+*Thank you for taking a moment to read and reflect.*
+`;
+
+  // Safe Base64 UTF-8 encoding and decoding
+  function utf8ToBase64(str: string): string {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => {
+      return String.fromCharCode(parseInt(p1, 16));
+    }));
+  }
+
+  function base64ToUtf8(str: string): string {
+    return decodeURIComponent(Array.prototype.map.call(atob(str), (c: string) => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+  }
+
+  // Update live preview & stats
+  function updatePreview() {
+    if (!textarea || !renderedOutput) return;
+
+    const raw = textarea.value;
+
+    // Update stats
+    const chars = raw.length;
+    const words = raw.trim() ? raw.trim().split(/\s+/).length : 0;
+    const readMin = Math.max(1, Math.ceil(words / 200));
+
+    if (charCountEl) charCountEl.textContent = `${chars.toLocaleString()} chars`;
+    if (wordCountEl) wordCountEl.textContent = `${words.toLocaleString()} words`;
+    if (readTimeEl) readTimeEl.textContent = `${readMin} min read`;
+
+    // Render markdown via marked
+    if (!raw.trim()) {
+      renderedOutput.innerHTML = `
+        <div class="empty-preview-state">
+          <div class="empty-icon">✍️</div>
+          <h3>Nothing to preview yet</h3>
+          <p>Type or paste markdown in the editor, or click <strong>Sample</strong> above to test.</p>
+        </div>
+      `;
+      return;
+    }
+
+    try {
+      const parsedHtml = marked.parse(raw) as string;
+      renderedOutput.innerHTML = parsedHtml;
+
+      // Enhance code blocks with copy buttons
+      enhanceCodeBlocks();
+
+      // Auto update filename from first H1 if still default
+      if (filenameInput && (filenameInput.value === 'document.md' || filenameInput.value === 'untitled.md')) {
+        const firstH1 = raw.match(/^#\s+(.+)$/m);
+        if (firstH1 && firstH1[1]) {
+          const slug = firstH1[1].toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+          if (slug) filenameInput.value = `${slug.slice(0, 30)}.md`;
+        }
+      }
+
+    } catch (err) {
+      console.error('Markdown parsing error:', err);
+      renderedOutput.innerHTML = `<div class="render-error">Error parsing markdown.</div>`;
+    }
+
+    // Auto-save draft in localStorage
+    try {
+      localStorage.setItem(STORAGE_KEY, raw);
+    } catch {}
+  }
+
+  // Add "Copy Code" button to all code blocks
+  function enhanceCodeBlocks() {
+    if (!renderedOutput) return;
+    renderedOutput.querySelectorAll('pre').forEach(pre => {
+      if (pre.querySelector('.code-copy-btn')) return;
+
+      const btn = document.createElement('button');
+      btn.className = 'code-copy-btn';
+      btn.type = 'button';
+      btn.textContent = 'Copy';
+      btn.title = 'Copy code snippet';
+
+      btn.addEventListener('click', () => {
+        const code = pre.querySelector('code')?.innerText || pre.innerText;
+        navigator.clipboard.writeText(code).then(() => {
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+          showToast('Code copied to clipboard');
+        });
+      });
+
+      pre.style.position = 'relative';
+      pre.appendChild(btn);
+    });
+  }
+
+  // View Mode Switching
+  function setViewMode(mode: 'split' | 'preview' | 'editor') {
+    if (!workspaceMain) return;
+
+    workspaceMain.classList.remove('layout-split', 'layout-preview', 'layout-editor');
+    workspaceMain.classList.add(`layout-${mode}`);
+
+    [tabSplit, tabPreview, tabEditor].forEach(tab => tab?.classList.remove('active'));
+
+    if (mode === 'split') tabSplit?.classList.add('active');
+    if (mode === 'preview') tabPreview?.classList.add('active');
+    if (mode === 'editor') tabEditor?.classList.add('active');
+  }
+
+  tabSplit?.addEventListener('click', () => setViewMode('split'));
+  tabPreview?.addEventListener('click', () => setViewMode('preview'));
+  tabEditor?.addEventListener('click', () => setViewMode('editor'));
+
+  // Toast Notification
+  function showToast(msg: string, icon = '✓') {
+    const toast = document.getElementById('toast-notification');
+    const toastMsg = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+
+    if (!toast || !toastMsg) return;
+
+    toastMsg.textContent = msg;
+    if (toastIcon) toastIcon.textContent = icon;
+
+    toast.style.display = 'inline-flex';
+    toast.classList.remove('fade-out');
+
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 2800);
+  }
+
+  // 1. Share Link Generation
+  const shareBtn = document.getElementById('share-link-btn');
+  shareBtn?.addEventListener('click', () => {
+    if (!textarea) return;
+    const content = textarea.value.trim();
+    if (!content) {
+      alert('Please enter or paste markdown text to share.');
+      return;
+    }
+
+    try {
+      const encoded = utf8ToBase64(content);
+      const url = `${window.location.origin}/tools/md-share#doc=${encodeURIComponent(encoded)}`;
+
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('🔗 Shareable link copied! Anyone with the link can view formatted document.', '✦');
+      }).catch(() => {
+        prompt('Copy this shareable link:', url);
+      });
+    } catch (err) {
+      console.error('Failed to encode share link', err);
+      alert('Could not encode document for link sharing.');
+    }
+  });
+
+  // 2. Copy Raw Markdown
+  document.getElementById('copy-raw-btn')?.addEventListener('click', () => {
+    if (!textarea) return;
+    navigator.clipboard.writeText(textarea.value).then(() => {
+      showToast('Raw Markdown copied to clipboard');
+    });
+  });
+
+  // 3. Copy HTML
+  document.getElementById('copy-html-btn')?.addEventListener('click', () => {
+    if (!renderedOutput) return;
+    navigator.clipboard.writeText(renderedOutput.innerHTML).then(() => {
+      showToast('Rendered HTML copied to clipboard');
+    });
+  });
+
+  // 4. Download .md File
+  document.getElementById('download-md-btn')?.addEventListener('click', () => {
+    if (!textarea) return;
+    const text = textarea.value;
+    let filename = filenameInput?.value?.trim() || 'document.md';
+    if (!filename.endsWith('.md')) filename += '.md';
+
+    const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(`Downloaded ${filename}`);
+  });
+
+  // 5. Load Sample
+  document.getElementById('load-sample-btn')?.addEventListener('click', () => {
+    if (!textarea) return;
+    if (textarea.value.trim() && textarea.value !== SAMPLE_MARKDOWN) {
+      if (!confirm('Replace current editor text with the sample document?')) return;
+    }
+    textarea.value = SAMPLE_MARKDOWN;
+    if (filenameInput) filenameInput.value = 'the-architecture-of-memory.md';
+    updatePreview();
+    showToast('Loaded sample markdown document');
+  });
+
+  // 6. Print / PDF
+  document.getElementById('print-btn')?.addEventListener('click', () => {
+    window.print();
+  });
+
+  // 7. File Input Upload
+  const fileInput = document.getElementById('md-file-input') as HTMLInputElement;
+  fileInput?.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const result = evt.target?.result as string;
+      if (textarea) {
+        textarea.value = result;
+        if (filenameInput) filenameInput.value = file.name;
+        updatePreview();
+        showToast(`Loaded ${file.name}`);
+      }
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+
+  // 8. Drag and Drop Support
+  const dropZone = document.getElementById('drop-zone');
+  const dragOverlay = document.getElementById('drag-overlay');
+
+  if (dropZone && dragOverlay) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragOverlay.style.display = 'flex';
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragOverlay.style.display = 'none';
+      });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const dt = (e as DragEvent).dataTransfer;
+      const file = dt?.files?.[0];
+      if (file && (file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.txt'))) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const content = evt.target?.result as string;
+          if (textarea) {
+            textarea.value = content;
+            if (filenameInput) filenameInput.value = file.name;
+            updatePreview();
+            showToast(`Loaded ${file.name}`);
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+  }
+
+  // 9. Tab key indentation in textarea
+  textarea?.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + 2;
+      updatePreview();
+    }
+  });
+
+  // Real-time input listener
+  textarea?.addEventListener('input', updatePreview);
+
+  // 10. Check URL Hash on Load (Share Link or Sample Link)
+  function initFromUrl() {
+    const hash = window.location.hash;
+    const banner = document.getElementById('shared-doc-banner');
+
+    if (hash.includes('doc=')) {
+      try {
+        const match = hash.match(/doc=([^&]+)/);
+        if (match && match[1]) {
+          const decodedBase64 = decodeURIComponent(match[1]);
+          const decodedText = base64ToUtf8(decodedBase64);
+
+          if (textarea) {
+            textarea.value = decodedText;
+            updatePreview();
+
+            // Default to reading mode for shared document
+            setViewMode('preview');
+
+            if (banner) banner.style.display = 'block';
+            showToast('Loaded shared document', '✦');
+          }
+        }
+      } catch (err) {
+        console.error('Error decoding shared doc hash', err);
+      }
+    } else if (hash.includes('sample=true')) {
+      if (textarea) {
+        textarea.value = SAMPLE_MARKDOWN;
+        if (filenameInput) filenameInput.value = 'the-architecture-of-memory.md';
+        updatePreview();
+      }
+    } else {
+      // Check saved local draft
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && textarea && !textarea.value) {
+        textarea.value = saved;
+        updatePreview();
+      } else if (textarea && !textarea.value) {
+        // Fallback default starter
+        textarea.value = SAMPLE_MARKDOWN;
+        updatePreview();
+      }
+    }
+  }
+
+  // Banner "Open in Editor" button
+  document.getElementById('banner-edit-btn')?.addEventListener('click', () => {
+    setViewMode('split');
+    const banner = document.getElementById('shared-doc-banner');
+    if (banner) banner.style.display = 'none';
+  });
+
+  // Run on mount
+  initFromUrl();
+</script>
+
+<style>
+  .md-share-workspace {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - var(--header-height));
+    background-color: var(--bg-primary);
+  }
+
+  /* Workspace Header Toolbar */
+  .workspace-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
+    gap: 1rem;
+    flex-wrap: wrap;
+    position: sticky;
+    top: var(--header-height);
+    z-index: 10;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .back-tools-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 0.35rem 0.55rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s ease;
+  }
+
+  .back-tools-link:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-subtle);
+  }
+
+  .header-doc-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tool-tag-pill {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background-color: rgba(158, 86, 56, 0.12);
+    color: var(--accent-terra);
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .doc-title-input {
+    background: transparent;
+    border: 1px solid transparent;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    padding: 0.25rem 0.45rem;
+    border-radius: var(--radius-sm);
+    outline: none;
+    transition: all 0.15s ease;
+  }
+
+  .doc-title-input:hover,
+  .doc-title-input:focus {
+    background-color: var(--bg-subtle);
+    border-color: var(--border-light);
+  }
+
+  /* Center Mode Tabs */
+  .view-mode-tabs {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem;
+    gap: 0.2rem;
+  }
+
+  .view-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .view-tab:hover {
+    color: var(--text-primary);
+  }
+
+  .view-tab.active {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Header Actions */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .tool-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .btn-subtle {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+  }
+
+  .btn-subtle:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+    background-color: var(--bg-subtle);
+  }
+
+  .btn-accent {
+    background-color: var(--accent-terra);
+    border: 1px solid var(--accent-terra);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(158, 86, 56, 0.25);
+  }
+
+  .btn-accent:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  @media (max-width: 800px) {
+    .btn-text-desktop {
+      display: none;
+    }
+    .view-tab span {
+      display: none;
+    }
+  }
+
+  /* Shared Document Banner */
+  .shared-doc-banner {
+    background-color: rgba(158, 86, 56, 0.08);
+    border-bottom: 1px solid rgba(158, 86, 56, 0.2);
+    padding: 0.65rem 1.5rem;
+    animation: fadeIn 0.2s ease;
+  }
+
+  .banner-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    flex-wrap: wrap;
+  }
+
+  .banner-icon {
+    color: var(--accent-terra);
+    font-size: 0.95rem;
+  }
+
+  .banner-action-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    background-color: var(--accent-terra);
+    color: #fff;
+    border: none;
+    padding: 0.3rem 0.75rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  /* Main Panes Layout */
+  .workspace-main {
+    display: grid;
+    flex: 1;
+    min-height: calc(100vh - 130px);
+  }
+
+  /* Layout Modes */
+  .workspace-main.layout-split {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .workspace-main.layout-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-main.layout-preview .pane-editor {
+    display: none;
+  }
+
+  .workspace-main.layout-preview .pane-preview {
+    max-width: 900px;
+    margin: 0 auto;
+    width: 100%;
+    border-left: none;
+  }
+
+  .workspace-main.layout-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-main.layout-editor .pane-preview {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .workspace-main.layout-split {
+      grid-template-columns: 1fr;
+    }
+    .workspace-main.layout-split .pane-editor {
+      min-height: 45vh;
+    }
+    .workspace-main.layout-split .pane-preview {
+      border-left: none;
+      border-top: 1px solid var(--border-light);
+    }
+  }
+
+  /* Pane Components */
+  .pane {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    position: relative;
+  }
+
+  .pane-editor {
+    border-right: 1px solid var(--border-light);
+  }
+
+  .pane-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 1.25rem;
+    background-color: var(--bg-subtle);
+    border-bottom: 1px solid var(--border-light);
+    font-size: 0.75rem;
+  }
+
+  .pane-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .pane-indicator {
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+  }
+
+  .pane-indicator.live {
+    color: var(--accent-sage);
+    border-color: rgba(61, 97, 77, 0.3);
+  }
+
+  .pane-title {
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .pane-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .preview-btn {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .preview-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+    background-color: var(--bg-card);
+  }
+
+  /* Textarea Editor */
+  .editor-textarea-wrap {
+    flex: 1;
+    position: relative;
+    display: flex;
+  }
+
+  .markdown-textarea {
+    width: 100%;
+    height: 100%;
+    min-height: 500px;
+    background-color: var(--bg-card);
+    border: none;
+    outline: none;
+    padding: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: var(--text-primary);
+    resize: none;
+    box-sizing: border-box;
+  }
+
+  .markdown-textarea::placeholder {
+    color: var(--text-faint);
+  }
+
+  .drag-drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(18, 19, 20, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+  }
+
+  .drag-overlay-card {
+    background-color: var(--bg-card);
+    padding: 2rem 3rem;
+    border-radius: var(--radius-md);
+    border: 2px dashed var(--accent-terra);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--accent-terra);
+    font-weight: 600;
+  }
+
+  /* Rendered Preview Container */
+  .preview-scroll-container {
+    flex: 1;
+    padding: 2.5rem 3rem;
+    background-color: var(--bg-primary);
+    overflow-y: auto;
+  }
+
+  @media (max-width: 640px) {
+    .preview-scroll-container {
+      padding: 1.5rem 1.25rem;
+    }
+  }
+
+  /* Prose Styling */
+  .markdown-rendered-prose {
+    max-width: 740px;
+    margin: 0 auto;
+    font-family: var(--font-serif);
+    font-size: 1.08rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+  }
+
+  .markdown-rendered-prose :global(h1),
+  .markdown-rendered-prose :global(h2),
+  .markdown-rendered-prose :global(h3),
+  .markdown-rendered-prose :global(h4) {
+    font-family: var(--font-serif);
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-top: 1.8em;
+    margin-bottom: 0.6em;
+  }
+
+  .markdown-rendered-prose :global(h1) {
+    font-size: 2.25rem;
+    letter-spacing: -0.02em;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.4em;
+    margin-top: 0;
+  }
+
+  .markdown-rendered-prose :global(h2) {
+    font-size: 1.6rem;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 0.3em;
+  }
+
+  .markdown-rendered-prose :global(h3) {
+    font-size: 1.3rem;
+  }
+
+  .markdown-rendered-prose :global(p) {
+    margin-bottom: 1.35em;
+  }
+
+  .markdown-rendered-prose :global(blockquote) {
+    border-left: 3px solid var(--accent-terra);
+    padding-left: 1.25rem;
+    margin: 1.5em 0;
+    font-style: italic;
+    color: var(--text-secondary);
+  }
+
+  .markdown-rendered-prose :global(ul),
+  .markdown-rendered-prose :global(ol) {
+    margin-bottom: 1.35em;
+    padding-left: 1.5rem;
+  }
+
+  .markdown-rendered-prose :global(li) {
+    margin-bottom: 0.4em;
+  }
+
+  .markdown-rendered-prose :global(hr) {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 2.5em 0;
+  }
+
+  .markdown-rendered-prose :global(a) {
+    color: var(--accent-terra);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .markdown-rendered-prose :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    margin: 1.5em 0;
+    border: 1px solid var(--border-light);
+  }
+
+  /* Tables */
+  .markdown-rendered-prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.75em 0;
+    font-size: 0.92rem;
+    font-family: var(--font-sans);
+  }
+
+  .markdown-rendered-prose :global(th),
+  .markdown-rendered-prose :global(td) {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-light);
+    text-align: left;
+  }
+
+  .markdown-rendered-prose :global(th) {
+    background-color: var(--bg-subtle);
+    font-weight: 600;
+  }
+
+  .markdown-rendered-prose :global(tr:nth-child(even)) {
+    background-color: var(--bg-card);
+  }
+
+  /* Code blocks & Inline code */
+  .markdown-rendered-prose :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+    background-color: var(--bg-subtle);
+    padding: 0.15em 0.35em;
+    border-radius: 3px;
+    border: 1px solid var(--border-light);
+    color: var(--accent-terra);
+  }
+
+  .markdown-rendered-prose :global(pre) {
+    background-color: #1a1a1a;
+    color: #f3f3f3;
+    padding: 1.25rem 1.4rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin: 1.5em 0;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  [data-theme='dark'] .markdown-rendered-prose :global(pre) {
+    background-color: #0d0e0f;
+    border: 1px solid var(--border-strong);
+  }
+
+  .markdown-rendered-prose :global(pre code) {
+    background: transparent;
+    padding: 0;
+    border: none;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .markdown-rendered-prose :global(.code-copy-btn) {
+    position: absolute;
+    top: 0.65rem;
+    right: 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    background-color: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f3f3f3;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .markdown-rendered-prose :global(.code-copy-btn:hover) {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+
+  /* Checkbox / Task lists */
+  .markdown-rendered-prose :global(input[type="checkbox"]) {
+    margin-right: 0.45rem;
+    accent-color: var(--accent-terra);
+  }
+
+  /* Empty state */
+  .empty-preview-state {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    color: var(--text-muted);
+  }
+
+  .empty-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .empty-preview-state h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0 0 0.4rem;
+    color: var(--text-primary);
+  }
+
+  .empty-preview-state p {
+    font-size: 0.92rem;
+    margin: 0;
+  }
+
+  /* Toast Notification */
+  .toast-popup {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: var(--accent-ink);
+    color: var(--bg-primary);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-sm);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    z-index: 1000;
+    animation: toastSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes toastSlide {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Print Stylesheet */
+  @media print {
+    .workspace-header,
+    .pane-editor,
+    .pane-header,
+    .preview-actions,
+    .toast-popup,
+    .shared-doc-banner {
+      display: none !important;
+    }
+    .md-share-workspace,
+    .workspace-main,
+    .pane-preview,
+    .preview-scroll-container {
+      display: block !important;
+      padding: 0 !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+    }
+  }
+</style>

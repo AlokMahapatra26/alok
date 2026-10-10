@@ -1,0 +1,1045 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="The Wall — What You Think About Me — Alok Mahapatra"
+  description="An open public space where anyone can say what they think about Alok Mahapatra, and Alok replies."
+  activePath="/wall"
+>
+  <div class="content-container wall-page">
+    <!-- Page Header -->
+    <header class="wall-header">
+      <h1 class="page-title">The Wall</h1>
+      <p class="page-subtitle">
+        Leave a note or thought. I reply to every one.
+      </p>
+    </header>
+
+    <!-- MAIN CARD: WHAT YOU THINK ABOUT ME -->
+    <section class="what-you-think-card">
+      <div class="card-hero-row">
+        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-title-icon">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h2 class="card-main-title">What you think about me</h2>
+      </div>
+
+      <!-- Submission Form -->
+      <form id="thought-form" class="thought-form">
+        <div class="form-row-2">
+          <input 
+            type="text" 
+            id="thought-name" 
+            class="form-input" 
+            placeholder="Your name *" 
+            aria-label="Your name"
+            maxlength="60" 
+            required 
+          />
+          <input 
+            type="text" 
+            id="thought-relation" 
+            class="form-input" 
+            placeholder="Context / how we know each other (optional)" 
+            aria-label="How we know each other"
+            maxlength="50" 
+          />
+        </div>
+
+        <textarea 
+          id="thought-message" 
+          class="form-textarea" 
+          rows="2" 
+          placeholder="Write what you think about me..."
+          aria-label="Your thought"
+          maxlength="1500" 
+          required
+        ></textarea>
+
+        <div class="form-actions-row">
+          <button type="submit" id="submit-thought-btn" class="submit-thought-btn">
+            <span>Post</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
+
+        <div id="thought-status-msg" class="thought-status-banner" style="display: none;"></div>
+      </form>
+
+      <!-- Divider -->
+      <div class="card-inner-divider"></div>
+
+      <!-- PUBLIC FEED HEADER -->
+      <div class="feed-header-bar">
+        <div class="feed-header-title-group">
+          <h3 class="feed-heading">Public Wall</h3>
+          <span id="thoughts-count-badge" class="count-pill">0 notes</span>
+        </div>
+        <span class="feed-hint">Chronological</span>
+      </div>
+
+      <!-- Feed Container -->
+      <div id="thoughts-feed" class="thoughts-feed-list">
+        <div class="feed-loading-state">
+          <div class="loading-spinner"></div>
+          <span>Loading public thoughts...</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<script>
+  import { 
+    isSupabaseConfigured, 
+    getSupabaseThoughts, 
+    addSupabaseThought, 
+    replySupabaseThought, 
+    deleteSupabaseThought, 
+    likeSupabaseThought,
+    type ThoughtEntry 
+  } from '../lib/supabase';
+
+  let allThoughts: ThoughtEntry[] = [];
+
+  const STORAGE_KEY = 'custom_thoughts_about_me';
+
+  function getLocalThoughts(): ThoughtEntry[] {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveLocalThoughts(list: ThoughtEntry[]) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.error('Failed to save to localStorage', e);
+    }
+  }
+
+  function isAuthor(): boolean {
+    return document.documentElement.getAttribute('data-author-authenticated') === 'true';
+  }
+
+  function getInitials(name: string): string {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function formatDate(isoOrDate?: string): string {
+    if (!isoOrDate) return 'Recently';
+    try {
+      const d = new Date(isoOrDate);
+      if (isNaN(d.getTime())) return isoOrDate;
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return 'Recently';
+    }
+  }
+
+  function escapeHtml(str: string): string {
+    return (str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  async function loadThoughts() {
+    const feed = document.getElementById('thoughts-feed');
+    const countBadge = document.getElementById('thoughts-count-badge');
+    if (!feed) return;
+
+    let supabaseItems: ThoughtEntry[] = [];
+    if (isSupabaseConfigured()) {
+      try {
+        supabaseItems = await getSupabaseThoughts();
+      } catch (err) {
+        console.warn('Supabase thoughts fetch failed:', err);
+      }
+    }
+
+    const localItems = getLocalThoughts();
+
+    // Deduplicate by ID
+    const map = new Map<string, ThoughtEntry>();
+    localItems.forEach(item => map.set(item.id, item));
+    supabaseItems.forEach(item => map.set(item.id, item));
+
+    allThoughts = Array.from(map.values()).sort((a, b) => {
+      const timeA = new Date(a.created_at || 0).getTime();
+      const timeB = new Date(b.created_at || 0).getTime();
+      return timeB - timeA;
+    });
+
+    if (countBadge) {
+      countBadge.textContent = `${allThoughts.length} ${allThoughts.length === 1 ? 'thought' : 'thoughts'}`;
+    }
+
+    renderFeed();
+  }
+
+  function renderFeed() {
+    const feed = document.getElementById('thoughts-feed');
+    if (!feed) return;
+
+    if (allThoughts.length === 0) {
+      feed.innerHTML = `
+        <div class="empty-thoughts-box">
+          <div class="empty-thoughts-icon">✍️</div>
+          <h4 class="empty-thoughts-title">No thoughts on the wall yet</h4>
+          <p class="empty-thoughts-desc">Be the very first person to write what you think about Alok above!</p>
+        </div>
+      `;
+      return;
+    }
+
+    const authorLogged = isAuthor();
+
+    feed.innerHTML = allThoughts.map(thought => {
+      const initials = getInitials(thought.name);
+      const hasReply = Boolean(thought.reply && thought.reply.trim());
+
+      return `
+        <article class="thought-item animate-fade-in" id="thought-${thought.id}">
+          <div class="thought-card-top">
+            <div class="thought-author-meta">
+              <div class="thought-avatar" aria-hidden="true">${escapeHtml(initials)}</div>
+              <div class="thought-author-details">
+                <div class="name-relation-line">
+                  <span class="thought-author-name">${escapeHtml(thought.name)}</span>
+                  ${thought.relation ? `<span class="thought-relation-tag">${escapeHtml(thought.relation)}</span>` : ''}
+                </div>
+                <time class="thought-date">${formatDate(thought.created_at)}</time>
+              </div>
+            </div>
+
+            <div class="thought-actions" data-author-only>
+              <button 
+                type="button" 
+                class="author-action-btn reply-trigger-btn" 
+                data-id="${thought.id}"
+                title="${hasReply ? 'Edit reply' : 'Reply to this thought'}"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 17 4 12 9 7"></polyline>
+                  <path d="M20 18v-2a4 4 0 0 0-4-4H4"></path>
+                </svg>
+                <span>${hasReply ? 'Edit Reply' : 'Reply'}</span>
+              </button>
+
+              <button 
+                type="button" 
+                class="author-action-btn delete-thought-btn" 
+                data-id="${thought.id}"
+                title="Delete this thought"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Thought Message Content -->
+          <div class="thought-body">
+            <p class="thought-message-text">${escapeHtml(thought.message)}</p>
+          </div>
+
+          <!-- Author's Public Reply (if exists) -->
+          ${hasReply ? `
+            <div class="author-reply-container">
+              <div class="author-reply-header">
+                <span class="reply-sparkle">✦</span>
+                <span class="reply-author-name">Alok Mahapatra</span>
+                <span class="reply-verified-badge">Author</span>
+                ${thought.replied_at ? `<span class="reply-time">${formatDate(thought.replied_at)}</span>` : ''}
+              </div>
+              <p class="author-reply-content">${escapeHtml(thought.reply || '')}</p>
+            </div>
+          ` : ''}
+
+          <!-- Inline Reply Box for Author (hidden by default) -->
+          <div class="inline-reply-box" id="reply-box-${thought.id}" style="display: none;">
+            <label class="reply-box-label">Your Author Response as Alok Mahapatra:</label>
+            <textarea 
+              class="form-textarea inline-reply-textarea" 
+              rows="3" 
+              placeholder="Write a response that will be displayed publicly under their note..."
+            >${escapeHtml(thought.reply || '')}</textarea>
+            <div class="inline-reply-actions">
+              <button type="button" class="btn-cancel-reply" data-id="${thought.id}">Cancel</button>
+              <button type="button" class="btn-save-reply" data-id="${thought.id}">Save Public Reply</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    attachEventListeners();
+  }
+
+  function attachEventListeners() {
+    const feed = document.getElementById('thoughts-feed');
+    if (!feed) return;
+
+    // 1. Reply trigger
+    feed.querySelectorAll('.reply-trigger-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (!id) return;
+        const box = document.getElementById(`reply-box-${id}`);
+        if (box) {
+          box.style.display = box.style.display === 'none' ? 'block' : 'none';
+          if (box.style.display === 'block') {
+            const textarea = box.querySelector('textarea');
+            textarea?.focus();
+          }
+        }
+      });
+    });
+
+    // 2. Cancel reply
+    feed.querySelectorAll('.btn-cancel-reply').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (!id) return;
+        const box = document.getElementById(`reply-box-${id}`);
+        if (box) box.style.display = 'none';
+      });
+    });
+
+    // 3. Save reply
+    feed.querySelectorAll('.btn-save-reply').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const targetBtn = e.currentTarget as HTMLButtonElement;
+        const id = targetBtn.dataset.id;
+        if (!id) return;
+
+        const box = document.getElementById(`reply-box-${id}`);
+        const textarea = box?.querySelector('textarea');
+        const replyText = textarea?.value?.trim() || '';
+
+        if (!replyText) {
+          alert('Please enter a reply before saving.');
+          return;
+        }
+
+        targetBtn.disabled = true;
+        targetBtn.textContent = 'Saving...';
+
+        try {
+          if (isSupabaseConfigured()) {
+            await replySupabaseThought(id, replyText);
+          }
+
+          // Update local state & storage
+          const found = allThoughts.find(t => t.id === id);
+          if (found) {
+            found.reply = replyText;
+            found.replied_at = new Date().toISOString();
+          }
+          saveLocalThoughts(allThoughts);
+
+          renderFeed();
+        } catch (err) {
+          console.error('Error saving reply:', err);
+          alert('Could not save reply. Please try again.');
+          targetBtn.disabled = false;
+          targetBtn.textContent = 'Save Public Reply';
+        }
+      });
+    });
+
+    // 4. Delete thought
+    feed.querySelectorAll('.delete-thought-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (!id) return;
+
+        const item = allThoughts.find(t => t.id === id);
+        const name = item?.name || 'this note';
+
+        if (confirm(`Are you sure you want to delete the note from "${name}"? This cannot be undone.`)) {
+          try {
+            if (isSupabaseConfigured()) {
+              await deleteSupabaseThought(id);
+            }
+            allThoughts = allThoughts.filter(t => t.id !== id);
+            saveLocalThoughts(allThoughts);
+            renderFeed();
+          } catch (err) {
+            console.error('Error deleting thought:', err);
+            alert('Failed to delete thought.');
+          }
+        }
+      });
+    });
+  }
+
+  // Handle Form Submission
+  const form = document.getElementById('thought-form') as HTMLFormElement;
+  const statusMsg = document.getElementById('thought-status-msg');
+  const submitBtn = document.getElementById('submit-thought-btn') as HTMLButtonElement;
+
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const nameInput = document.getElementById('thought-name') as HTMLInputElement;
+      const relationInput = document.getElementById('thought-relation') as HTMLInputElement;
+      const messageInput = document.getElementById('thought-message') as HTMLTextAreaElement;
+
+      const name = nameInput.value.trim();
+      const relation = relationInput.value.trim();
+      const message = messageInput.value.trim();
+
+      if (!name || !message) {
+        showStatus('Please provide both your name and what you think.', 'error');
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>Posting...</span>`;
+      }
+
+      const newId = 'th-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+      const newEntry: ThoughtEntry = {
+        id: newId,
+        name,
+        relation,
+        message,
+        reply: '',
+        likes: 0,
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        if (isSupabaseConfigured()) {
+          const inserted = await addSupabaseThought({
+            name,
+            relation,
+            message
+          });
+          if (inserted) {
+            newEntry.id = inserted.id;
+            newEntry.created_at = inserted.created_at || newEntry.created_at;
+          }
+        }
+
+        // Add to active state and localStorage
+        allThoughts.unshift(newEntry);
+        saveLocalThoughts(allThoughts);
+
+        // Reset form
+        form.reset();
+        showStatus('✨ Thank you! Your thought has been posted publicly to the wall.', 'success');
+
+        const countBadge = document.getElementById('thoughts-count-badge');
+        if (countBadge) {
+          countBadge.textContent = `${allThoughts.length} ${allThoughts.length === 1 ? 'thought' : 'thoughts'}`;
+        }
+
+        renderFeed();
+
+        // Scroll smoothly to the newly posted thought
+        setTimeout(() => {
+          const el = document.getElementById(`thought-${newEntry.id}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 100);
+
+      } catch (err) {
+        console.error('Failed to post thought:', err);
+        showStatus('Something went wrong. Please try again.', 'error');
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `
+            <span>Post Thought</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          `;
+        }
+      }
+    });
+  }
+
+  function showStatus(text: string, type: 'success' | 'error') {
+    if (!statusMsg) return;
+    statusMsg.textContent = text;
+    statusMsg.className = `thought-status-banner banner-${type}`;
+    statusMsg.style.display = 'block';
+
+    if (type === 'success') {
+      setTimeout(() => {
+        if (statusMsg) statusMsg.style.display = 'none';
+      }, 6000);
+    }
+  }
+
+  // Observe auth state changes to dynamically reveal author-only controls
+  const observer = new MutationObserver(() => {
+    renderFeed();
+  });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-author-authenticated']
+  });
+
+  // Initial load
+  loadThoughts();
+</script>
+
+<style>
+  .wall-page {
+    padding-top: 1.75rem;
+    padding-bottom: 3.5rem;
+  }
+
+  .wall-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .page-title {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.025em;
+  }
+
+  .page-subtitle {
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    max-width: 620px;
+    line-height: 1.45;
+  }
+
+  /* WHAT YOU THINK ABOUT ME CARD */
+  .what-you-think-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 0;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .card-hero-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    color: var(--accent-terra);
+  }
+
+  .card-title-icon {
+    flex-shrink: 0;
+  }
+
+  .card-main-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  /* Submission Form */
+  .thought-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    background-color: transparent;
+    padding: 0;
+    border: none;
+  }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+  }
+
+  @media (max-width: 640px) {
+    .form-row-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+
+  .form-input:focus,
+  .form-textarea:focus {
+    background-color: var(--bg-card);
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 2px rgba(158, 86, 56, 0.12);
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 60px;
+    line-height: 1.45;
+  }
+
+  .form-actions-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.1rem;
+  }
+
+  .submit-thought-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background-color: var(--accent-ink);
+    color: var(--bg-primary);
+    border: none;
+    padding: 0.42rem 1.1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .submit-thought-btn:hover {
+    background-color: var(--accent-terra);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(158, 86, 56, 0.2);
+  }
+
+  .submit-thought-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .thought-status-banner {
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.82rem;
+    margin-top: 0.35rem;
+  }
+
+  .banner-success {
+    background-color: rgba(61, 97, 77, 0.1);
+    border: 1px solid rgba(61, 97, 77, 0.3);
+    color: var(--accent-sage);
+  }
+
+  .banner-error {
+    background-color: rgba(229, 62, 62, 0.1);
+    border: 1px solid rgba(229, 62, 62, 0.3);
+    color: #e53e3e;
+  }
+
+  /* Inner Divider */
+  .card-inner-divider {
+    height: 1px;
+    background-color: var(--border-light);
+    margin: 1.25rem 0 1rem;
+  }
+
+  /* Public Feed Bar */
+  .feed-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+  }
+
+  .feed-header-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .feed-heading {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .count-pill {
+    font-size: 0.72rem;
+    font-weight: 600;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    padding: 0.12rem 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .feed-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Thought Item */
+  :global(.thoughts-feed-list) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  :global(.thought-item) {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.95rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    transition: border-color 0.15s ease;
+  }
+
+  :global(.thought-item:hover) {
+    border-color: var(--border-strong);
+  }
+
+  :global(.thought-card-top) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  :global(.thought-author-meta) {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  :global(.thought-avatar) {
+    width: 30px;
+    height: 30px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, var(--accent-terra), #c26946);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.05em;
+  }
+
+  :global(.thought-author-details) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  :global(.name-relation-line) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.thought-author-name) {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  :global(.thought-relation-tag) {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.45rem;
+    border-radius: 9999px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+  }
+
+  :global(.thought-date) {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  :global(.thought-actions) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  :global(.author-action-btn) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  :global(.author-action-btn:hover) {
+    color: var(--accent-terra);
+    border-color: var(--accent-terra);
+  }
+
+  :global(.author-action-btn.delete-thought-btn:hover) {
+    color: #e53e3e;
+    border-color: #e53e3e;
+  }
+
+  :global(.thought-body) {
+    font-family: var(--font-serif);
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: var(--text-primary);
+  }
+
+  :global(.thought-message-text) {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Author's Public Reply */
+  :global(.author-reply-container) {
+    background-color: var(--bg-card);
+    border-left: 3px solid var(--accent-terra);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 1.1rem 1.35rem;
+    margin-top: 0.35rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  }
+
+  :global(.author-reply-header) {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  :global(.reply-sparkle) {
+    color: var(--accent-terra);
+    font-size: 0.85rem;
+  }
+
+  :global(.reply-author-name) {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  :global(.reply-verified-badge) {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.1rem 0.45rem;
+    border-radius: 9999px;
+    background-color: rgba(158, 86, 56, 0.15);
+    color: var(--accent-terra);
+  }
+
+  :global(.reply-time) {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  :global(.author-reply-content) {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Inline Reply Form */
+  :global(.inline-reply-box) {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1.25rem;
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  :global(.reply-box-label) {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-terra);
+  }
+
+  :global(.inline-reply-textarea) {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.7rem 0.9rem;
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+    min-height: 85px;
+    line-height: 1.55;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  :global(.inline-reply-textarea:focus) {
+    border-color: var(--accent-terra);
+    box-shadow: 0 0 0 2px rgba(158, 86, 56, 0.15);
+  }
+
+  :global(.inline-reply-actions) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    margin-top: 0.25rem;
+  }
+
+  :global(.btn-cancel-reply) {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.95rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  :global(.btn-cancel-reply:hover) {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  :global(.btn-save-reply) {
+    background-color: var(--accent-terra);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 1.15rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  :global(.btn-save-reply:hover) {
+    background-color: var(--accent-hover);
+  }
+
+  /* Empty state */
+  :global(.empty-thoughts-box) {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-card);
+  }
+
+  :global(.empty-thoughts-icon) {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  :global(.empty-thoughts-title) {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin: 0 0 0.35rem;
+  }
+
+  :global(.empty-thoughts-desc) {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    margin: 0;
+  }
+
+  :global(.feed-loading-state) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  :global(.loading-spinner) {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--border-light);
+    border-top-color: var(--accent-terra);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 640px) {
+    .what-you-think-card {
+      padding: 1.5rem 1.25rem;
+    }
+    .thought-form {
+      padding: 1.25rem 1rem;
+    }
+    :global(.thought-item) {
+      padding: 1.15rem 1rem;
+    }
+  }
+</style>

@@ -64,7 +64,147 @@
         </div>
       </div>
 
+      <!-- DIARY COVER IMAGE -->
+      <div class="meta-field thumbnail-field">
+        <div class="thumbnail-header-row">
+          <label for="diary-cover-file">Entry Cover Photo (Optional)</label>
+          <div class="thumb-mode-toggle" role="tablist" aria-label="Diary cover method">
+            <button type="button" class="thumb-mode-btn active" id="btn-diary-mode-upload" role="tab" aria-selected="true">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Upload Photo</span>
+            </button>
+            <button type="button" class="thumb-mode-btn" id="btn-diary-mode-url" role="tab" aria-selected="false">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>Link / Presets</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- UPLOAD PHOTO PANEL -->
+        <div id="diary-thumb-upload-panel" class="thumb-panel">
+          <input 
+            type="file" 
+            id="diary-cover-file" 
+            accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+            class="visually-hidden-file" 
+          />
+          <div id="diary-thumb-dropzone" class="thumb-dropzone" tabindex="0" role="button" aria-label="Click to upload diary cover photo">
+            <div class="dropzone-icon-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </div>
+            <div class="dropzone-text-block">
+              <span class="dropzone-title">Upload a cover photo for this entry</span>
+              <span class="dropzone-hint">Click here to browse, or drag & drop image</span>
+            </div>
+            <button type="button" id="diary-browse-photo-btn" class="browse-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+              <span>Choose Photo</span>
+            </button>
+          </div>
+          <div id="diary-thumb-uploading-indicator" class="thumb-uploading-indicator" style="display: none;">
+            <div class="spinner-sm"></div>
+            <span>Optimizing and attaching cover photo...</span>
+          </div>
+        </div>
+
+        <!-- URL & PRESETS PANEL -->
+        <div id="diary-thumb-url-panel" class="thumb-panel" style="display: none;">
+          <div class="thumbnail-input-group">
+            <input 
+              type="text" 
+              id="diary-cover-url" 
+              class="meta-input thumbnail-input" 
+              placeholder="Paste image URL, e.g. https://images.unsplash.com/..." 
+            />
+          </div>
+
+          <div class="thumb-presets-row">
+            <span class="preset-label">Presets:</span>
+            <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=1200&q=80">☕ Coffee & Journal</button>
+            <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=1200&q=80">🌿 Morning Sunlight</button>
+            <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80">🌊 Calm Sea</button>
+            <button type="button" class="preset-pill diary-preset-pill" data-img="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80">🌅 Evening Glow</button>
+          </div>
+        </div>
+
+        <!-- THUMBNAIL PREVIEW CARD -->
+        <div id="diary-thumb-preview-box" class="thumb-preview-box" style="display: none;">
+          <div class="thumb-preview-card">
+            <div class="thumb-preview-image-wrap">
+              <img id="diary-thumb-preview-img" src="" alt="Cover preview" />
+            </div>
+            <div class="thumb-preview-info-row">
+              <div class="thumb-status-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span id="diary-thumb-status-text">Cover Photo Attached</span>
+              </div>
+              <div class="thumb-card-actions">
+                <button type="button" id="diary-change-thumb-btn" class="thumb-card-btn change-btn" title="Choose a different photo">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Change</span>
+                </button>
+                <button type="button" id="diary-clear-cover-btn" class="thumb-card-btn remove-btn" title="Remove cover photo">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  <span>Remove</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="content-field">
+        <div class="content-editor-toolbar">
+          <div class="toolbar-left">
+            <button type="button" id="diary-insert-inline-photo-btn" class="inline-photo-btn" title="Insert photo wherever your cursor is in the text">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>+ Insert Photo in Middle</span>
+            </button>
+            <input 
+              type="file" 
+              id="diary-inline-photo-file" 
+              accept="image/png,image/jpeg,image/webp,image/gif,image/avif" 
+              multiple 
+              class="visually-hidden-file" 
+            />
+            <button type="button" id="diary-insert-inline-url-btn" class="inline-photo-url-btn" title="Insert photo by link">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              <span>By Link</span>
+            </button>
+          </div>
+          <span class="inline-photo-hint">Add photos anywhere in your writing</span>
+        </div>
         <textarea 
           id="entry-content" 
           class="content-textarea" 
@@ -741,6 +881,66 @@
     width: 100%;
   }
 
+  .content-editor-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .inline-photo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--accent-terra);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+
+  .inline-photo-btn:hover {
+    background-color: rgba(158, 86, 56, 0.08);
+    border-color: var(--accent-terra);
+  }
+
+  .inline-photo-url-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.76rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: var(--radius-sm);
+    background-color: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .inline-photo-url-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .inline-photo-hint {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
   .content-textarea {
     width: 100%;
     background-color: var(--bg-subtle);
@@ -875,6 +1075,26 @@
       if (fileInput) fileInput.value = '';
       if (coverUrlInput) coverUrlInput.value = '';
       updateThumbPreview('');
+
+      const diaryFileInput = document.getElementById('diary-cover-file') as HTMLInputElement;
+      const diaryCoverUrlInput = document.getElementById('diary-cover-url') as HTMLInputElement;
+      if (diaryFileInput) diaryFileInput.value = '';
+      if (diaryCoverUrlInput) diaryCoverUrlInput.value = '';
+      updateDiaryThumbPreview('');
+      const btnDiaryModeUpload = document.getElementById('btn-diary-mode-upload');
+      if (btnDiaryModeUpload) {
+        btnDiaryModeUpload.classList.add('active');
+        btnDiaryModeUpload.setAttribute('aria-selected', 'true');
+        const btnDiaryModeUrl = document.getElementById('btn-diary-mode-url');
+        if (btnDiaryModeUrl) {
+          btnDiaryModeUrl.classList.remove('active');
+          btnDiaryModeUrl.setAttribute('aria-selected', 'false');
+        }
+        const diaryUploadPanel = document.getElementById('diary-thumb-upload-panel');
+        const diaryUrlPanel = document.getElementById('diary-thumb-url-panel');
+        if (diaryUploadPanel) diaryUploadPanel.style.display = 'block';
+        if (diaryUrlPanel) diaryUrlPanel.style.display = 'none';
+      }
       const btnModeUpload = document.getElementById('btn-mode-upload');
       if (btnModeUpload) {
         btnModeUpload.classList.add('active');
@@ -1085,6 +1305,196 @@
       });
     });
 
+    // DIARY COVER PHOTO HANDLING
+    const diaryFileInput = document.getElementById('diary-cover-file') as HTMLInputElement;
+    const diaryCoverUrlInput = document.getElementById('diary-cover-url') as HTMLInputElement;
+    const diaryClearCoverBtn = document.getElementById('diary-clear-cover-btn') as HTMLButtonElement;
+    const diaryChangeThumbBtn = document.getElementById('diary-change-thumb-btn') as HTMLButtonElement;
+    const diaryBrowsePhotoBtn = document.getElementById('diary-browse-photo-btn') as HTMLButtonElement;
+    const diaryDropzone = document.getElementById('diary-thumb-dropzone') as HTMLElement;
+    const diaryUploadIndicator = document.getElementById('diary-thumb-uploading-indicator') as HTMLElement;
+    const diaryThumbPreviewBox = document.getElementById('diary-thumb-preview-box') as HTMLElement;
+    const diaryThumbPreviewImg = document.getElementById('diary-thumb-preview-img') as HTMLImageElement;
+    const diaryThumbStatusText = document.getElementById('diary-thumb-status-text') as HTMLElement;
+
+    const btnDiaryModeUpload = document.getElementById('btn-diary-mode-upload');
+    const btnDiaryModeUrl = document.getElementById('btn-diary-mode-url');
+    const diaryUploadPanel = document.getElementById('diary-thumb-upload-panel');
+    const diaryUrlPanel = document.getElementById('diary-thumb-url-panel');
+
+    function updateDiaryThumbPreview(url: string, fileName?: string) {
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        if (diaryThumbPreviewImg) diaryThumbPreviewImg.src = url;
+        if (diaryThumbPreviewBox) diaryThumbPreviewBox.style.display = 'block';
+        if (diaryThumbStatusText) {
+          if (fileName) {
+            diaryThumbStatusText.textContent = fileName.length > 25 ? fileName.slice(0, 22) + '...' : fileName;
+          } else if (url.startsWith('data:')) {
+            diaryThumbStatusText.textContent = 'Cover Photo Attached';
+          } else {
+            diaryThumbStatusText.textContent = 'Image URL Linked';
+          }
+        }
+      } else {
+        if (diaryThumbPreviewBox) diaryThumbPreviewBox.style.display = 'none';
+        if (diaryThumbPreviewImg) diaryThumbPreviewImg.src = '';
+        if (diaryFileInput) diaryFileInput.value = '';
+      }
+    }
+
+    async function processSelectedDiaryImage(file: File) {
+      if (!file || !file.type.startsWith('image/')) {
+        alert('Please select a valid image file (JPG, PNG, WEBP, GIF).');
+        return;
+      }
+      if (diaryUploadIndicator) diaryUploadIndicator.style.display = 'flex';
+      try {
+        const compressed = await compressImageFile(file, 1400, 900, 0.82);
+        if (diaryCoverUrlInput) diaryCoverUrlInput.value = compressed;
+        updateDiaryThumbPreview(compressed, file.name);
+      } catch (err: any) {
+        console.error('Image processing error:', err);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const res = e.target?.result as string;
+          if (diaryCoverUrlInput) diaryCoverUrlInput.value = res;
+          updateDiaryThumbPreview(res, file.name);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        if (diaryUploadIndicator) diaryUploadIndicator.style.display = 'none';
+      }
+    }
+
+    btnDiaryModeUpload?.addEventListener('click', () => {
+      btnDiaryModeUpload.classList.add('active');
+      btnDiaryModeUpload.setAttribute('aria-selected', 'true');
+      btnDiaryModeUrl?.classList.remove('active');
+      btnDiaryModeUrl?.setAttribute('aria-selected', 'false');
+      if (diaryUploadPanel) diaryUploadPanel.style.display = 'block';
+      if (diaryUrlPanel) diaryUrlPanel.style.display = 'none';
+    });
+
+    btnDiaryModeUrl?.addEventListener('click', () => {
+      btnDiaryModeUrl.classList.add('active');
+      btnDiaryModeUrl.setAttribute('aria-selected', 'true');
+      btnDiaryModeUpload?.classList.remove('active');
+      btnDiaryModeUpload?.setAttribute('aria-selected', 'false');
+      if (diaryUrlPanel) diaryUrlPanel.style.display = 'block';
+      if (diaryUploadPanel) diaryUploadPanel.style.display = 'none';
+    });
+
+    diaryBrowsePhotoBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      diaryFileInput?.click();
+    });
+
+    diaryChangeThumbBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      diaryFileInput?.click();
+    });
+
+    diaryDropzone?.addEventListener('click', () => {
+      diaryFileInput?.click();
+    });
+
+    diaryDropzone?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        diaryFileInput?.click();
+      }
+    });
+
+    diaryDropzone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      diaryDropzone.classList.add('drag-active');
+    });
+
+    diaryDropzone?.addEventListener('dragleave', () => {
+      diaryDropzone.classList.remove('drag-active');
+    });
+
+    diaryDropzone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      diaryDropzone.classList.remove('drag-active');
+      if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+        processSelectedDiaryImage(e.dataTransfer.files[0]);
+      }
+    });
+
+    diaryFileInput?.addEventListener('change', () => {
+      if (diaryFileInput.files && diaryFileInput.files[0]) {
+        processSelectedDiaryImage(diaryFileInput.files[0]);
+      }
+    });
+
+    diaryCoverUrlInput?.addEventListener('input', () => {
+      updateDiaryThumbPreview(diaryCoverUrlInput.value.trim());
+    });
+
+    diaryClearCoverBtn?.addEventListener('click', () => {
+      if (diaryCoverUrlInput) diaryCoverUrlInput.value = '';
+      if (diaryFileInput) diaryFileInput.value = '';
+      updateDiaryThumbPreview('');
+    });
+
+    document.querySelectorAll('.diary-preset-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const imgUrl = target.dataset.img || '';
+        if (diaryCoverUrlInput) {
+          diaryCoverUrlInput.value = imgUrl;
+          updateDiaryThumbPreview(imgUrl);
+        }
+      });
+    });
+
+    // INLINE PHOTO INSERTION IN MIDDLE OF DIARY
+    const diaryInlinePhotoFile = document.getElementById('diary-inline-photo-file') as HTMLInputElement;
+    const diaryInsertInlinePhotoBtn = document.getElementById('diary-insert-inline-photo-btn');
+    const diaryInsertInlineUrlBtn = document.getElementById('diary-insert-inline-url-btn');
+
+    function insertTextAtCursor(textarea: HTMLTextAreaElement, textToInsert: string) {
+      const start = textarea.selectionStart || textarea.value.length;
+      const end = textarea.selectionEnd || textarea.value.length;
+      const original = textarea.value;
+      const before = original.substring(0, start);
+      const after = original.substring(end);
+      textarea.value = before + textToInsert + after;
+      textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
+      textarea.focus();
+      textarea.dispatchEvent(new Event('input'));
+    }
+
+    diaryInsertInlinePhotoBtn?.addEventListener('click', () => {
+      diaryInlinePhotoFile?.click();
+    });
+
+    diaryInlinePhotoFile?.addEventListener('change', async () => {
+      if (diaryInlinePhotoFile.files && diaryInlinePhotoFile.files.length > 0) {
+        const files = Array.from(diaryInlinePhotoFile.files);
+        for (const file of files) {
+          if (!file.type.startsWith('image/')) continue;
+          try {
+            const compressed = await compressImageFile(file, 1200, 800, 0.80);
+            const caption = file.name.replace(/\.[^/.]+$/, '').replace(/[\[\]]/g, '') || 'Photo';
+            insertTextAtCursor(entryContent, `\n\n![${caption}](${compressed})\n\n`);
+          } catch (err) {
+            console.error('Failed to compress inline photo:', err);
+          }
+        }
+        diaryInlinePhotoFile.value = '';
+      }
+    });
+
+    diaryInsertInlineUrlBtn?.addEventListener('click', () => {
+      const url = prompt('Enter image URL to insert in your diary:');
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        const caption = prompt('Optional caption:') || 'Photo';
+        insertTextAtCursor(entryContent, `\n\n![${caption.trim()}](${url.trim()})\n\n`);
+      }
+    });
+
     (window as any).resetComposerState = resetComposerState;
 
     // Tab Switching
@@ -1188,6 +1598,16 @@
       if (timeIn) timeIn.value = entry.time_of_day || entry.timeOfDay || '';
       if (locInput) locInput.value = entry.location || '';
       if (weatherInput) weatherInput.value = entry.weather || '';
+      if (diaryCoverUrlInput) {
+        const coverVal = entry.cover_image || entry.coverImage || '';
+        diaryCoverUrlInput.value = coverVal;
+        updateDiaryThumbPreview(coverVal);
+        if (coverVal && !coverVal.startsWith('data:')) {
+          btnDiaryModeUrl?.click();
+        } else {
+          btnDiaryModeUpload?.click();
+        }
+      }
       if (contentIn) {
         contentIn.value = Array.isArray(entry.content) ? entry.content.join('\n\n') : (entry.content || '');
         contentIn.dispatchEvent(new Event('input'));
@@ -1276,6 +1696,7 @@
       const location = (document.getElementById('entry-location') as HTMLInputElement).value.trim() || 'Journal';
       const weather = (document.getElementById('entry-weather') as HTMLInputElement).value.trim() || 'Quiet hours';
       const timeOfDay = timeInput.value.trim() || 'Evening';
+      const coverImage = diaryCoverUrlInput ? diaryCoverUrlInput.value.trim() : '';
 
       const saveBtn = document.getElementById('diary-save-btn') as HTMLButtonElement;
       if (saveBtn) {
@@ -1296,6 +1717,8 @@
                   ...list[idx],
                   title,
                   content: paragraphs,
+                  coverImage,
+                  cover_image: coverImage,
                   mood: moodName,
                   moodEmoji,
                   location,
@@ -1311,6 +1734,7 @@
               const updatePromise = updateSupabaseDiaryEntry(editingDiaryId, {
                 title,
                 content: paragraphs,
+                cover_image: coverImage,
                 mood: moodName,
                 mood_emoji: moodEmoji,
                 location,
@@ -1328,7 +1752,7 @@
               const list = stored ? JSON.parse(stored) : [];
               const idx = list.findIndex((x: any) => x.id === editingDiaryId);
               if (idx !== -1) {
-                list[idx] = { ...list[idx], title, content: paragraphs, mood: moodName, moodEmoji, location, weather, timeOfDay, readTime };
+                list[idx] = { ...list[idx], title, coverImage, cover_image: coverImage, content: paragraphs, mood: moodName, moodEmoji, location, weather, timeOfDay, readTime };
                 localStorage.setItem('custom_diary_entries', JSON.stringify(list));
               }
             }
@@ -1340,6 +1764,7 @@
               const createPromise = createSupabaseDiaryEntry({
                 title,
                 content: paragraphs,
+                cover_image: coverImage,
                 mood: moodName,
                 mood_emoji: moodEmoji,
                 location,
@@ -1365,6 +1790,8 @@
               id: 'diary-' + Date.now(),
               slug,
               title,
+              coverImage,
+              cover_image: coverImage,
               date: new Date().toLocaleDateString('en-US', { month: 'long', day: '2-digit', year: 'numeric' }),
               timeOfDay,
               location,

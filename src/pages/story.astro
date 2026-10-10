@@ -321,6 +321,31 @@ import StoryComments from '../components/StoryComments.astro';
     margin-bottom: 3.5rem;
   }
 
+  :global(.story-body-figure) {
+    margin: 2.5rem 0;
+    text-align: center;
+  }
+
+  :global(.story-body-inline-img) {
+    width: 100%;
+    max-height: 580px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-light);
+    display: block;
+    margin: 0 auto;
+    background-color: var(--bg-card);
+  }
+
+  :global(.story-body-caption) {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-style: italic;
+  }
+
   .story-article-footer {
     padding-top: 2.5rem;
     border-top: 1px solid var(--border-light);
@@ -494,9 +519,37 @@ import StoryComments from '../components/StoryComments.astro';
     }
 
     if (bodyEl) {
-      bodyEl.innerHTML = (story.content || []).map((p: string, idx: number) => `
-        <p class="${idx === 0 ? 'drop-cap' : ''}">${escapeHtml(p)}</p>
-      `).join('');
+      bodyEl.innerHTML = (story.content || []).map((p: string, idx: number) => {
+        const trimmed = (p || '').trim();
+        const singleImg = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+        if (singleImg) {
+          const alt = singleImg[1];
+          const url = singleImg[2];
+          return `
+            <figure class="story-body-figure">
+              <img src="${url}" alt="${escapeHtml(alt)}" loading="lazy" class="story-body-inline-img" />
+              ${alt && alt !== 'Photo' ? `<figcaption class="story-body-caption">${escapeHtml(alt)}</figcaption>` : ''}
+            </figure>
+          `;
+        }
+
+        if (trimmed.includes('![') && trimmed.includes('](')) {
+          let html = escapeHtml(trimmed);
+          html = html.replace(/!\[(.*?)\]\((.*?)\)/g, (_, alt, url) => `
+            </p>
+            <figure class="story-body-figure">
+              <img src="${url}" alt="${alt}" loading="lazy" class="story-body-inline-img" />
+              ${alt && alt !== 'Photo' ? `<figcaption class="story-body-caption">${alt}</figcaption>` : ''}
+            </figure>
+            <p>
+          `);
+          return `<p class="${idx === 0 ? 'drop-cap' : ''}">${html}</p>`;
+        }
+
+        return `
+          <p class="${idx === 0 ? 'drop-cap' : ''}">${escapeHtml(trimmed)}</p>
+        `;
+      }).join('');
     }
 
     // Embed comments section

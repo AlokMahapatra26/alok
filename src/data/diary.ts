@@ -11,6 +11,8 @@ export interface DiaryEntry {
   moodEmoji: string;
   readTime: string;
   content: string[];
+  coverImage?: string;
+  cover_image?: string;
   isCustom?: boolean;
 }
 

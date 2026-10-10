@@ -11,7 +11,9 @@ const navItems = [
   { href: '/', label: 'Home' },
   { href: '/stories', label: 'Stories' },
   { href: '/diary', label: 'Diary' },
-  { href: '/about', label: 'About' },
+  { href: '/logs', label: 'Logs & Recs', fullLabel: 'Logs' },
+  { href: '/wall', label: 'Wall' },
+  { href: '/tools', label: 'Tools' },
 ];
 ---
 
@@ -28,7 +30,14 @@ const navItems = [
           href={item.href} 
           class={`nav-link ${activePath === item.href || (item.href !== '/' && activePath.startsWith(item.href)) ? 'active' : ''}`}
         >
-          <span>{item.label}</span>
+          {item.fullLabel ? (
+            <>
+              <span class="nav-label-full">{item.fullLabel}</span>
+              <span class="nav-label-short">{item.label}</span>
+            </>
+          ) : (
+            <span>{item.label}</span>
+          )}
           {item.href === '/diary' && (
             <span class="nav-diary-lock-badge" id="nav-diary-lock-badge" title="Diary is locked">
               <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -105,7 +114,7 @@ const navItems = [
           href={item.href} 
           class={`mobile-nav-link ${activePath === item.href || (item.href !== '/' && activePath.startsWith(item.href)) ? 'active' : ''}`}
         >
-          <span>{item.label}</span>
+          <span>{item.fullLabel || item.label}</span>
           {item.href === '/diary' && (
             <span class="nav-diary-lock-badge" id="mobile-diary-lock-badge" title="Diary is locked">
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -150,6 +159,13 @@ const navItems = [
     align-items: center;
     justify-content: space-between;
     height: var(--header-height);
+    gap: 1.5rem;
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    box-sizing: border-box;
   }
 
   .brand-link {
@@ -157,6 +173,9 @@ const navItems = [
     flex-direction: column;
     gap: 0.1rem;
     text-decoration: none;
+    flex-shrink: 0;
+    white-space: nowrap;
+    min-width: max-content;
   }
 
   .brand-title {
@@ -166,6 +185,7 @@ const navItems = [
     letter-spacing: -0.01em;
     color: var(--text-primary);
     transition: color 0.15s ease;
+    white-space: nowrap;
   }
 
   .brand-subtitle {
@@ -174,6 +194,7 @@ const navItems = [
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--text-muted);
+    white-space: nowrap;
   }
 
   .brand-link:hover .brand-title {
@@ -183,16 +204,35 @@ const navItems = [
   .nav-desktop {
     display: flex;
     align-items: center;
-    gap: 1.75rem;
+    gap: 1.35rem;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .nav-link {
-    font-size: 0.92rem;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
     position: relative;
     padding: 0.4rem 0;
     transition: color 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .nav-label-short {
+    display: none;
+  }
+
+  @media (max-width: 1220px) {
+    .nav-label-full {
+      display: none;
+    }
+    .nav-label-short {
+      display: inline;
+    }
+    .nav-desktop {
+      gap: 1rem;
+    }
   }
 
   .nav-link:hover {
@@ -228,7 +268,9 @@ const navItems = [
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.65rem;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .author-badge-group {
@@ -355,9 +397,11 @@ const navItems = [
     border-radius: var(--radius-sm);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 980px) {
     .header-inner {
       height: 60px;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
     .brand-title {
       font-size: 1.15rem;
@@ -365,6 +409,7 @@ const navItems = [
     }
     .brand-subtitle {
       font-size: 0.65rem;
+      white-space: nowrap;
     }
     .nav-desktop {
       display: none !important;

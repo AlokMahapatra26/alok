@@ -120,3 +120,40 @@ CREATE POLICY "Author can delete comments"
   ON public.comments FOR DELETE
   TO authenticated
   USING (true);
+
+-- ==============================================================================
+-- Thoughts About Me Table (Public Wall / Guestbook on /more)
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS public.thoughts_about_me (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  message TEXT NOT NULL,
+  relation TEXT DEFAULT '',
+  reply TEXT DEFAULT '',
+  replied_at TIMESTAMPTZ,
+  likes INT DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.thoughts_about_me ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public can view thoughts" ON public.thoughts_about_me;
+CREATE POLICY "Public can view thoughts"
+  ON public.thoughts_about_me FOR SELECT
+  USING (true);
+
+DROP POLICY IF EXISTS "Public can submit thoughts" ON public.thoughts_about_me;
+CREATE POLICY "Public can submit thoughts"
+  ON public.thoughts_about_me FOR INSERT
+  WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anyone can update thoughts likes or author reply" ON public.thoughts_about_me;
+CREATE POLICY "Anyone can update thoughts likes or author reply"
+  ON public.thoughts_about_me FOR UPDATE
+  USING (true);
+
+DROP POLICY IF EXISTS "Author can delete thoughts" ON public.thoughts_about_me;
+CREATE POLICY "Author can delete thoughts"
+  ON public.thoughts_about_me FOR DELETE
+  USING (true);
+

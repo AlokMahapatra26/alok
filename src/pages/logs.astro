@@ -1,0 +1,1438 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { initialMediaLogs, type MediaLog } from '../data/mediaLogs';
+---
+
+<BaseLayout
+  title="Logs & Recommendations — Alok Mahapatra"
+  description="Personal archive of films, literature, documentaries, videos, and music with reflections and recommendation picks."
+  activePath="/logs"
+>
+  <div class="container logs-page-container">
+    <!-- Header -->
+    <header class="logs-header">
+      <div class="header-content">
+        <span class="header-kicker">Archive & Curations</span>
+        <h1 class="page-title">Logs & Recommendations</h1>
+        <p class="page-description">
+          A running log of cinema, literature, documentaries, and essays with personal thoughts, notes, and recommendation highlights.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button type="button" id="open-log-modal-btn" class="log-media-btn" data-author-only>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>+ Log Media</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Toolbar: Filters, Recommendations Toggle & Search -->
+    <div class="logs-toolbar">
+      <div class="logs-filters">
+        <button type="button" class="filter-pill active" data-filter="all">All</button>
+        <button type="button" class="filter-pill" data-filter="movie">🎬 Movies</button>
+        <button type="button" class="filter-pill" data-filter="book">📚 Books</button>
+        <button type="button" class="filter-pill" data-filter="video">📺 Videos</button>
+        <button type="button" class="filter-pill" data-filter="music">🎵 Music</button>
+        <button type="button" class="filter-pill rec-filter-btn" id="filter-rec-btn">★ Recommended</button>
+      </div>
+
+      <div class="logs-search">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input 
+          type="text" 
+          id="logs-search-input" 
+          placeholder="Search by title, creator, or note..." 
+          aria-label="Search media logs"
+        />
+      </div>
+    </div>
+
+    <!-- Media Grid Container -->
+    <div id="media-grid" class="media-grid" data-initial-items={JSON.stringify(initialMediaLogs)}>
+      <!-- Rendered dynamically via client script -->
+    </div>
+
+    <div id="no-media-found" class="no-results" style="display: none;">
+      <p>No media logs found matching your criteria.</p>
+    </div>
+  </div>
+
+  <!-- ADD / EDIT MEDIA MODAL -->
+  <div id="media-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-heading" class="modal-title">Log New Media</h2>
+        <button type="button" id="close-log-modal-btn" class="modal-close-btn" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <form id="media-log-form" class="modal-form" onsubmit="event.preventDefault();">
+        <input type="hidden" id="editing-media-id" value="" />
+
+        <!-- Media Type Selector -->
+        <div class="form-row">
+          <label class="form-label">Type</label>
+          <div class="type-pill-selector">
+            <label class="type-radio-label">
+              <input type="radio" name="media-type" value="movie" checked />
+              <span>🎬 Movie / Show</span>
+            </label>
+            <label class="type-radio-label">
+              <input type="radio" name="media-type" value="book" />
+              <span>📚 Book</span>
+            </label>
+            <label class="type-radio-label">
+              <input type="radio" name="media-type" value="video" />
+              <span>📺 Video / Doc</span>
+            </label>
+            <label class="type-radio-label">
+              <input type="radio" name="media-type" value="music" />
+              <span>🎵 Music</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3RD PARTY AUTO-LOOKUP BOX -->
+        <div class="api-lookup-section">
+          <div class="lookup-input-wrap">
+            <input 
+              type="text" 
+              id="api-search-input" 
+              placeholder="Search movie title via 3rd party API (or paste YouTube link)..." 
+              class="form-input" 
+            />
+            <button type="button" id="api-search-btn" class="api-search-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Auto Fetch Info & Poster</span>
+            </button>
+          </div>
+          <div id="api-search-status" class="api-status-text" style="display: none;"></div>
+          <!-- Results Dropdown -->
+          <div id="api-results-dropdown" class="api-results-dropdown" style="display: none;"></div>
+        </div>
+
+        <!-- Title & Creator -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label for="media-title-input" class="form-label">Title *</label>
+            <input type="text" id="media-title-input" class="form-input" placeholder="Title..." required />
+          </div>
+          <div class="form-group">
+            <label for="media-creator-input" class="form-label">Director / Author / Channel</label>
+            <input type="text" id="media-creator-input" class="form-input" placeholder="e.g. Christopher Nolan, Haruki Murakami..." />
+          </div>
+        </div>
+
+        <!-- Year, Poster URL & Rating -->
+        <div class="form-grid-3">
+          <div class="form-group">
+            <label for="media-year-input" class="form-label">Release Year</label>
+            <input type="text" id="media-year-input" class="form-input" placeholder="e.g. 2024" />
+          </div>
+
+          <div class="form-group">
+            <label for="media-rating-input" class="form-label">Rating</label>
+            <select id="media-rating-input" class="form-select">
+              <option value="5">★★★★★ (Masterpiece)</option>
+              <option value="4">★★★★☆ (Great)</option>
+              <option value="3">★★★☆☆ (Good)</option>
+              <option value="2">★★☆☆☆ (Okay)</option>
+              <option value="1">★☆☆☆☆ (Weak)</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="media-rec-input" checked />
+              <span>★ Recommendation Pick</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Poster URL & Direct File Upload -->
+        <div class="form-group">
+          <div class="poster-input-header">
+            <label for="media-poster-input" class="form-label">Poster / Cover Image URL</label>
+            <button type="button" id="upload-poster-local-btn" class="link-action-btn">Or Upload Photo</button>
+            <input type="file" id="media-poster-file" accept="image/*" style="display: none;" />
+          </div>
+          <input type="text" id="media-poster-input" class="form-input" placeholder="Image URL (auto-filled by search, or paste custom)..." />
+        </div>
+
+        <!-- Poster Preview -->
+        <div id="poster-preview-wrap" class="poster-preview-wrap" style="display: none;">
+          <img id="poster-preview-img" src="" alt="Poster preview" />
+          <span class="poster-preview-label">Cover Preview</span>
+        </div>
+
+        <!-- Notes / Reflection -->
+        <div class="form-group">
+          <label for="media-notes-input" class="form-label">Your Reflection / Notes *</label>
+          <textarea 
+            id="media-notes-input" 
+            class="form-textarea" 
+            rows="3" 
+            placeholder="What stayed with you? Key observations, feelings, favorite scenes or quotes..." 
+            required
+          ></textarea>
+        </div>
+
+        <!-- External Link -->
+        <div class="form-group">
+          <label for="media-link-input" class="form-label">Link (IMDb, Goodreads, YouTube)</label>
+          <input type="url" id="media-link-input" class="form-input" placeholder="https://..." />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="cancel-log-btn" class="btn-secondary">Cancel</button>
+          <button type="submit" id="save-log-btn" class="btn-primary">Save to Logs</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DETAIL PREVIEW MODAL -->
+  <div id="detail-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display: none;">
+    <div class="modal-box detail-box">
+      <button type="button" id="close-detail-modal-btn" class="modal-close-btn detail-close" aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="detail-layout">
+        <div class="detail-poster-wrap">
+          <img id="detail-poster-img" src="" alt="" />
+        </div>
+        <div class="detail-content">
+          <div class="detail-badges">
+            <span id="detail-type-badge" class="badge-type">🎬 Movie</span>
+            <span id="detail-rec-badge" class="badge-rec" style="display: none;">★ Recommended</span>
+          </div>
+
+          <h2 id="detail-title" class="detail-title"></h2>
+          <div class="detail-creator-line">
+            <span id="detail-creator"></span>
+            <span id="detail-year" class="detail-year"></span>
+          </div>
+
+          <div id="detail-rating" class="detail-stars">★★★★★</div>
+
+          <div class="detail-notes-card">
+            <span class="detail-notes-label">Personal Reflection</span>
+            <p id="detail-notes" class="detail-notes-text"></p>
+          </div>
+
+          <div class="detail-footer-actions">
+            <a id="detail-ext-link" href="#" target="_blank" rel="noopener noreferrer" class="ext-link-btn" style="display: none;">
+              <span>View Source &rarr;</span>
+            </a>
+            <div class="detail-author-actions" data-author-only>
+              <button type="button" id="detail-edit-btn" class="edit-action-btn">Edit</button>
+              <button type="button" id="detail-delete-btn" class="delete-action-btn">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .logs-page-container {
+    padding-top: 3.5rem;
+    padding-bottom: 5rem;
+  }
+
+  .logs-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .header-kicker {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .page-title {
+    font-size: 2.35rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-description {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .log-media-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.55rem 1.15rem;
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .log-media-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  /* Toolbar */
+  .logs-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .logs-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-pill {
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.35rem 0.8rem;
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filter-pill:hover {
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+
+  .filter-pill.active {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+  }
+
+  .rec-filter-btn.active {
+    background-color: #d97706;
+    border-color: #d97706;
+    color: #fff;
+  }
+
+  .logs-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.45rem 0.85rem;
+    min-width: 260px;
+    color: var(--text-muted);
+  }
+
+  .logs-search input {
+    border: none;
+    background: transparent;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+  }
+
+  .logs-search:focus-within {
+    border-color: var(--accent-terra);
+  }
+
+  /* Media Grid */
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem 1.25rem;
+  }
+
+  @media (max-width: 1024px) {
+    .media-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .media-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem 0.75rem;
+    }
+  }
+
+  :global(.media-card) {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+
+  :global(.media-card:hover) {
+    border-color: var(--border-strong);
+    box-shadow: var(--card-shadow);
+    transform: translateY(-3px);
+  }
+
+  :global(.media-poster-wrap) {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    background-color: var(--bg-subtle);
+    overflow: hidden;
+  }
+
+  :global(.media-poster-img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.35s ease;
+  }
+
+  :global(.media-card:hover .media-poster-img) {
+    transform: scale(1.05);
+  }
+
+  :global(.media-type-badge) {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 9999px;
+    background: rgba(18, 19, 20, 0.75);
+    color: #fff;
+    backdrop-filter: blur(4px);
+  }
+
+  :global(.media-rec-badge) {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.2rem 0.45rem;
+    border-radius: 9999px;
+    background: #d97706;
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  }
+
+  :global(.media-card-body) {
+    padding: 0.75rem 0.85rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 0.2rem;
+  }
+
+  :global(.media-title) {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--text-primary);
+  }
+
+  :global(.media-creator-line) {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+
+  :global(.media-creator-text) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :global(.media-stars) {
+    font-size: 0.75rem;
+    color: #d97706;
+    letter-spacing: 0.05em;
+    margin-top: 0.25rem;
+  }
+
+  /* Modals */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(18, 19, 20, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    z-index: 100;
+  }
+
+  .modal-box {
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.3);
+    padding: 1.75rem;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .modal-title {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0.35rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .modal-close-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-subtle);
+  }
+
+  /* Form Elements */
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.35rem;
+  }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 0.55rem 0.8rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--accent-terra);
+  }
+
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 0.85rem;
+  }
+
+  .form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1.2fr;
+    gap: 0.85rem;
+    align-items: flex-end;
+  }
+
+  .type-pill-selector {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .type-radio-label {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.82rem;
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    transition: all 0.15s ease;
+  }
+
+  .type-radio-label input {
+    margin-right: 0.35rem;
+  }
+
+  .type-radio-label:has(input:checked) {
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+  }
+
+  /* 3rd Party API Section */
+  .api-lookup-section {
+    background-color: var(--bg-subtle);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: 0.85rem;
+    position: relative;
+  }
+
+  .lookup-input-wrap {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .api-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: var(--accent-terra);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.85rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .api-search-btn:hover {
+    opacity: 0.9;
+  }
+
+  .api-status-text {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+  }
+
+  .api-results-dropdown {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 50;
+  }
+
+  :global(.api-result-item) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  :global(.api-result-item:hover) {
+    background-color: var(--bg-subtle);
+  }
+
+  :global(.api-thumb-img) {
+    width: 36px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 3px;
+    background-color: var(--bg-subtle);
+  }
+
+  :global(.api-res-title) {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  :global(.api-res-sub) {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .poster-input-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .link-action-btn {
+    background: none;
+    border: none;
+    font-size: 0.78rem;
+    color: var(--accent-terra);
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+  }
+
+  .poster-preview-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.5rem;
+    background-color: var(--bg-subtle);
+    border-radius: var(--radius-sm);
+  }
+
+  .poster-preview-wrap img {
+    width: 48px;
+    height: 68px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .poster-preview-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .checkbox-group {
+    padding-bottom: 0.55rem;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #d97706;
+    cursor: pointer;
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+  }
+
+  .btn-primary {
+    padding: 0.55rem 1.25rem;
+    background-color: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-secondary {
+    padding: 0.55rem 1.15rem;
+    background-color: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+
+  /* Detail Modal */
+  .detail-box {
+    max-width: 680px;
+    position: relative;
+    padding: 2rem;
+  }
+
+  .detail-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .detail-layout {
+    display: flex;
+    gap: 1.75rem;
+  }
+
+  @media (max-width: 600px) {
+    .detail-layout {
+      flex-direction: column;
+    }
+  }
+
+  .detail-poster-wrap {
+    width: 180px;
+    flex-shrink: 0;
+    aspect-ratio: 2 / 3;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--bg-subtle);
+    box-shadow: var(--card-shadow);
+  }
+
+  .detail-poster-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .detail-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .detail-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .badge-type {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    background-color: var(--bg-subtle);
+    color: var(--text-secondary);
+  }
+
+  .badge-rec {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 9999px;
+    background-color: rgba(217, 119, 6, 0.15);
+    color: #d97706;
+  }
+
+  .detail-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .detail-creator-line {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .detail-stars {
+    color: #d97706;
+    font-size: 0.95rem;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-notes-card {
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin: 0.5rem 0;
+  }
+
+  .detail-notes-label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--accent-terra);
+    margin-bottom: 0.35rem;
+  }
+
+  .detail-notes-text {
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .detail-footer-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding-top: 0.75rem;
+  }
+
+  .ext-link-btn {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent-terra);
+    text-decoration: none;
+  }
+
+  .detail-author-actions {
+    display: inline-flex;
+    gap: 0.5rem;
+  }
+
+  .edit-action-btn, .delete-action-btn {
+    font-size: 0.78rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background-color: var(--bg-card);
+    cursor: pointer;
+  }
+
+  .delete-action-btn {
+    color: #e53e3e;
+  }
+</style>
+
+<script>
+  function setupLogsPage() {
+    const grid = document.getElementById('media-grid');
+    const noResults = document.getElementById('no-media-found');
+    const searchInput = document.getElementById('logs-search-input') as HTMLInputElement;
+    const filterPills = document.querySelectorAll('.filter-pill:not(.rec-filter-btn)');
+    const recFilterBtn = document.getElementById('filter-rec-btn');
+
+    // Modals
+    const modal = document.getElementById('media-modal');
+    const openModalBtn = document.getElementById('open-log-modal-btn');
+    const closeModalBtn = document.getElementById('close-log-modal-btn');
+    const cancelModalBtn = document.getElementById('cancel-log-btn');
+    const form = document.getElementById('media-log-form') as HTMLFormElement;
+
+    const detailModal = document.getElementById('detail-modal');
+    const closeDetailBtn = document.getElementById('close-detail-modal-btn');
+
+    // API search controls
+    const apiSearchInput = document.getElementById('api-search-input') as HTMLInputElement;
+    const apiSearchBtn = document.getElementById('api-search-btn');
+    const apiStatus = document.getElementById('api-search-status');
+    const apiResultsDropdown = document.getElementById('api-results-dropdown');
+
+    const titleInput = document.getElementById('media-title-input') as HTMLInputElement;
+    const creatorInput = document.getElementById('media-creator-input') as HTMLInputElement;
+    const yearInput = document.getElementById('media-year-input') as HTMLInputElement;
+    const posterInput = document.getElementById('media-poster-input') as HTMLInputElement;
+    const ratingInput = document.getElementById('media-rating-input') as HTMLSelectElement;
+    const recInput = document.getElementById('media-rec-input') as HTMLInputElement;
+    const notesInput = document.getElementById('media-notes-input') as HTMLTextAreaElement;
+    const linkInput = document.getElementById('media-link-input') as HTMLInputElement;
+    const editingIdInput = document.getElementById('editing-media-id') as HTMLInputElement;
+    const modalHeading = document.getElementById('modal-heading');
+
+    const posterFile = document.getElementById('media-poster-file') as HTMLInputElement;
+    const uploadPosterLocalBtn = document.getElementById('upload-poster-local-btn');
+    const posterPreviewWrap = document.getElementById('poster-preview-wrap');
+    const posterPreviewImg = document.getElementById('poster-preview-img') as HTMLImageElement;
+
+    // Load initial + stored custom logs
+    let initialLogs: any[] = [];
+    try {
+      if (grid?.dataset.initialItems) {
+        initialLogs = JSON.parse(grid.dataset.initialItems);
+      }
+    } catch (e) {}
+
+    let customLogs: any[] = [];
+    try {
+      customLogs = JSON.parse(localStorage.getItem('custom_media_logs') || '[]');
+    } catch (e) {}
+
+    let allMedia = [...customLogs, ...initialLogs];
+
+    let activeFilter = 'all';
+    let onlyRecommended = false;
+    let searchQuery = '';
+
+    function renderMediaGrid() {
+      if (!grid) return;
+
+      const filtered = allMedia.filter(item => {
+        const matchesCategory = activeFilter === 'all' || item.type === activeFilter;
+        const matchesRec = !onlyRecommended || item.isRecommended === true;
+        const text = `${item.title} ${item.creator || ''} ${item.notes || ''}`.toLowerCase();
+        const matchesSearch = !searchQuery || text.includes(searchQuery);
+
+        return matchesCategory && matchesRec && matchesSearch;
+      });
+
+      if (allMedia.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state-card" style="grid-column: 1 / -1; padding: 4rem 1.5rem; text-align: center; border: 1px dashed var(--border-light); border-radius: var(--radius-md); background-color: var(--bg-card);">
+            <p style="font-family: var(--font-serif); font-size: 1.25rem; color: var(--text-primary); margin-bottom: 0.5rem;">No media logs recorded yet.</p>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">Begin curating by logging books, films, and videos with your personal reflections.</p>
+            <button type="button" class="log-media-btn" data-author-only onclick="document.getElementById('open-log-modal-btn').click()">
+              <span>+ Log First Media</span>
+            </button>
+          </div>
+        `;
+        if (noResults) noResults.style.display = 'none';
+        return;
+      }
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        if (noResults) noResults.style.display = 'block';
+        return;
+      }
+
+      if (noResults) noResults.style.display = 'none';
+
+      grid.innerHTML = filtered.map(item => {
+        const typeEmoji = item.type === 'movie' ? '🎬' : item.type === 'book' ? '📚' : item.type === 'video' ? '📺' : '🎵';
+        const stars = '★'.repeat(item.rating || 5) + '☆'.repeat(5 - (item.rating || 5));
+
+        return `
+          <article class="media-card animate-fade-in" data-id="${item.id}">
+            <div class="media-poster-wrap">
+              <img src="${item.poster || 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80'}" alt="${escapeHtml(item.title)}" class="media-poster-img" loading="lazy" />
+              <span class="media-type-badge">${typeEmoji} ${capitalize(item.type)}</span>
+              ${item.isRecommended ? '<span class="media-rec-badge">★ Pick</span>' : ''}
+            </div>
+
+            <div class="media-card-body">
+              <h3 class="media-title">${escapeHtml(item.title)}</h3>
+              <div class="media-creator-line">
+                <span class="media-creator-text">${escapeHtml(item.creator || '—')}</span>
+                <span>${escapeHtml(item.year || '')}</span>
+              </div>
+              <div class="media-stars">${stars}</div>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Wire card click for detail modal
+      grid.querySelectorAll('.media-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const id = (card as HTMLElement).dataset.id;
+          const found = allMedia.find(m => m.id === id);
+          if (found) openDetailModal(found);
+        });
+      });
+    }
+
+    function openDetailModal(item: any) {
+      if (!detailModal) return;
+      const typeBadge = document.getElementById('detail-type-badge');
+      const recBadge = document.getElementById('detail-rec-badge');
+      const titleEl = document.getElementById('detail-title');
+      const creatorEl = document.getElementById('detail-creator');
+      const yearEl = document.getElementById('detail-year');
+      const starsEl = document.getElementById('detail-rating');
+      const notesEl = document.getElementById('detail-notes');
+      const posterImg = document.getElementById('detail-poster-img') as HTMLImageElement;
+      const extLink = document.getElementById('detail-ext-link') as HTMLAnchorElement;
+
+      const editBtn = document.getElementById('detail-edit-btn');
+      const deleteBtn = document.getElementById('detail-delete-btn');
+
+      if (typeBadge) typeBadge.textContent = `${item.type === 'movie' ? '🎬' : item.type === 'book' ? '📚' : item.type === 'video' ? '📺' : '🎵'} ${capitalize(item.type)}`;
+      if (recBadge) recBadge.style.display = item.isRecommended ? 'inline-block' : 'none';
+      if (titleEl) titleEl.textContent = item.title;
+      if (creatorEl) creatorEl.textContent = item.creator ? `By ${item.creator}` : '';
+      if (yearEl) yearEl.textContent = item.year ? `(${item.year})` : '';
+      if (starsEl) starsEl.textContent = '★'.repeat(item.rating || 5) + '☆'.repeat(5 - (item.rating || 5));
+      if (notesEl) notesEl.textContent = item.notes;
+      if (posterImg) posterImg.src = item.poster || '';
+
+      if (extLink) {
+        if (item.link) {
+          extLink.href = item.link;
+          extLink.style.display = 'inline-block';
+        } else {
+          extLink.style.display = 'none';
+        }
+      }
+
+      editBtn?.replaceWith(editBtn.cloneNode(true));
+      deleteBtn?.replaceWith(deleteBtn.cloneNode(true));
+
+      const newEditBtn = document.getElementById('detail-edit-btn');
+      const newDeleteBtn = document.getElementById('detail-delete-btn');
+
+      newEditBtn?.addEventListener('click', () => {
+        detailModal.style.display = 'none';
+        openEditModal(item);
+      });
+
+      newDeleteBtn?.addEventListener('click', () => {
+        if (confirm(`Delete "${item.title}" from your logs?`)) {
+          customLogs = customLogs.filter(m => m.id !== item.id);
+          localStorage.setItem('custom_media_logs', JSON.stringify(customLogs));
+          allMedia = allMedia.filter(m => m.id !== item.id);
+          detailModal.style.display = 'none';
+          renderMediaGrid();
+        }
+      });
+
+      detailModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openEditModal(item?: any) {
+      if (!modal) return;
+      form.reset();
+      if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      if (apiResultsDropdown) apiResultsDropdown.style.display = 'none';
+
+      if (item) {
+        if (modalHeading) modalHeading.textContent = 'Edit Media Log';
+        if (editingIdInput) editingIdInput.value = item.id;
+        const typeRadio = form.querySelector(`input[name="media-type"][value="${item.type}"]`) as HTMLInputElement;
+        if (typeRadio) typeRadio.checked = true;
+        if (titleInput) titleInput.value = item.title || '';
+        if (creatorInput) creatorInput.value = item.creator || '';
+        if (yearInput) yearInput.value = item.year || '';
+        if (posterInput) {
+          posterInput.value = item.poster || '';
+          updatePosterPreview(item.poster);
+        }
+        if (ratingInput) ratingInput.value = String(item.rating || 5);
+        if (recInput) recInput.checked = item.isRecommended ?? true;
+        if (notesInput) notesInput.value = item.notes || '';
+        if (linkInput) linkInput.value = item.link || '';
+      } else {
+        if (modalHeading) modalHeading.textContent = 'Log New Media';
+        if (editingIdInput) editingIdInput.value = '';
+        if (recInput) recInput.checked = true;
+      }
+
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      if (modal) modal.style.display = 'none';
+      if (detailModal) detailModal.style.display = 'none';
+      document.body.style.overflow = '';
+      if (apiResultsDropdown) apiResultsDropdown.style.display = 'none';
+    }
+
+    openModalBtn?.addEventListener('click', () => openEditModal());
+    closeModalBtn?.addEventListener('click', closeModal);
+    cancelModalBtn?.addEventListener('click', closeModal);
+    closeDetailBtn?.addEventListener('click', closeModal);
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    detailModal?.addEventListener('click', (e) => {
+      if (e.target === detailModal) closeModal();
+    });
+
+    // Poster Preview
+    function updatePosterPreview(url: string) {
+      if (url && (url.startsWith('http') || url.startsWith('data:'))) {
+        if (posterPreviewImg) posterPreviewImg.src = url;
+        if (posterPreviewWrap) posterPreviewWrap.style.display = 'flex';
+      } else {
+        if (posterPreviewWrap) posterPreviewWrap.style.display = 'none';
+      }
+    }
+
+    posterInput?.addEventListener('input', () => updatePosterPreview(posterInput.value.trim()));
+
+    uploadPosterLocalBtn?.addEventListener('click', () => posterFile?.click());
+    posterFile?.addEventListener('change', () => {
+      if (posterFile.files && posterFile.files[0]) {
+        const file = posterFile.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const res = e.target?.result as string;
+          if (posterInput) posterInput.value = res;
+          updatePosterPreview(res);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 3RD PARTY AUTO-LOOKUP (iTunes Movie API + TVMaze + Open Library + YouTube oEmbed)
+    apiSearchBtn?.addEventListener('click', async () => {
+      const query = apiSearchInput.value.trim();
+      if (!query) return;
+
+      const selectedType = (form.querySelector('input[name="media-type"]:checked') as HTMLInputElement)?.value || 'movie';
+
+      if (apiStatus) {
+        apiStatus.textContent = 'Searching 3rd party databases...';
+        apiStatus.style.display = 'block';
+      }
+      if (apiResultsDropdown) apiResultsDropdown.style.display = 'none';
+
+      try {
+        // Check if YouTube URL
+        if (query.includes('youtube.com') || query.includes('youtu.be')) {
+          let videoId = '';
+          const ytMatch = query.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([\w-]{11})/);
+          if (ytMatch && ytMatch[1]) videoId = ytMatch[1];
+
+          const posterUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+          
+          // oEmbed fetch
+          try {
+            const resp = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(query)}`);
+            const data = await resp.json();
+            titleInput.value = data.title || 'YouTube Video';
+            creatorInput.value = data.author_name || 'YouTube';
+            linkInput.value = query;
+          } catch (e) {
+            titleInput.value = 'YouTube Video';
+            linkInput.value = query;
+          }
+
+          if (posterUrl) {
+            posterInput.value = posterUrl;
+            updatePosterPreview(posterUrl);
+          }
+          if (apiStatus) apiStatus.textContent = '✓ YouTube info & thumbnail loaded!';
+          return;
+        }
+
+        let results: any[] = [];
+
+        if (selectedType === 'movie') {
+          // iTunes Search API (CORS friendly, free, high-res posters)
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=movie&limit=5`);
+          const data = await res.json();
+          results = (data.results || []).map((m: any) => ({
+            title: m.trackName,
+            creator: m.artistName || 'Director',
+            year: m.releaseDate ? m.releaseDate.slice(0, 4) : '',
+            poster: m.artworkUrl100 ? m.artworkUrl100.replace('100x100bb', '600x600bb') : '',
+            notes: m.longDescription ? m.longDescription.slice(0, 300) + '...' : '',
+            link: m.trackViewUrl || ''
+          }));
+        } else if (selectedType === 'book') {
+          // Open Library Search API
+          const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5`);
+          const data = await res.json();
+          results = (data.docs || []).map((b: any) => ({
+            title: b.title,
+            creator: b.author_name ? b.author_name[0] : 'Author',
+            year: b.first_publish_year ? String(b.first_publish_year) : '',
+            poster: b.cover_i ? `https://covers.openlibrary.org/b/id/${b.cover_i}-M.jpg` : '',
+            notes: '',
+            link: b.key ? `https://openlibrary.org${b.key}` : ''
+          }));
+        } else {
+          // Music via iTunes Search
+          const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=5`);
+          const data = await res.json();
+          results = (data.results || []).map((m: any) => ({
+            title: m.collectionName,
+            creator: m.artistName,
+            year: m.releaseDate ? m.releaseDate.slice(0, 4) : '',
+            poster: m.artworkUrl100 ? m.artworkUrl100.replace('100x100bb', '600x600bb') : '',
+            notes: '',
+            link: m.collectionViewUrl || ''
+          }));
+        }
+
+        if (results.length === 0) {
+          if (apiStatus) apiStatus.textContent = 'No 3rd party entries found. You can fill details manually.';
+          return;
+        }
+
+        if (apiStatus) apiStatus.textContent = `Found ${results.length} results. Select one below:`;
+
+        if (apiResultsDropdown) {
+          apiResultsDropdown.innerHTML = results.map((r, i) => `
+            <div class="api-result-item" data-idx="${i}">
+              <img src="${r.poster || ''}" class="api-thumb-img" alt="" />
+              <div>
+                <div class="api-res-title">${escapeHtml(r.title)}</div>
+                <div class="api-res-sub">${escapeHtml(r.creator)} ${r.year ? `(${r.year})` : ''}</div>
+              </div>
+            </div>
+          `).join('');
+
+          apiResultsDropdown.style.display = 'block';
+
+          apiResultsDropdown.querySelectorAll('.api-result-item').forEach(itemEl => {
+            itemEl.addEventListener('click', () => {
+              const idx = parseInt((itemEl as HTMLElement).dataset.idx || '0', 10);
+              const chosen = results[idx];
+              if (chosen) {
+                titleInput.value = chosen.title || '';
+                creatorInput.value = chosen.creator || '';
+                yearInput.value = chosen.year || '';
+                posterInput.value = chosen.poster || '';
+                updatePosterPreview(chosen.poster);
+                if (chosen.link) linkInput.value = chosen.link;
+                if (chosen.notes && !notesInput.value) notesInput.value = chosen.notes;
+                apiResultsDropdown.style.display = 'none';
+                if (apiStatus) apiStatus.textContent = `✓ Selected: "${chosen.title}"`;
+              }
+            });
+          });
+        }
+      } catch (err: any) {
+        if (apiStatus) apiStatus.textContent = 'API search error. Please enter info manually.';
+      }
+    });
+
+    // Form Submission
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      if (!title) return;
+
+      const editingId = editingIdInput.value;
+      const type = ((form.querySelector('input[name="media-type"]:checked') as HTMLInputElement)?.value || 'movie') as any;
+      const creator = creatorInput.value.trim();
+      const year = yearInput.value.trim();
+      const poster = posterInput.value.trim();
+      const rating = parseInt(ratingInput.value, 10) || 5;
+      const isRecommended = recInput.checked;
+      const notes = notesInput.value.trim();
+      const link = linkInput.value.trim();
+
+      if (editingId) {
+        // Edit existing
+        const idx = customLogs.findIndex(m => m.id === editingId);
+        const updatedItem = { id: editingId, title, type, creator, year, poster, rating, isRecommended, notes, link, dateLogged: 'Updated recently' };
+        if (idx !== -1) {
+          customLogs[idx] = updatedItem;
+        } else {
+          customLogs.unshift(updatedItem);
+        }
+        const allIdx = allMedia.findIndex(m => m.id === editingId);
+        if (allIdx !== -1) allMedia[allIdx] = updatedItem;
+      } else {
+        // Add new
+        const newItem = {
+          id: 'media-' + Date.now(),
+          title,
+          type,
+          creator,
+          year,
+          poster: poster || 'https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&w=600&q=80',
+          rating,
+          isRecommended,
+          notes,
+          link,
+          dateLogged: 'Today'
+        };
+        customLogs.unshift(newItem);
+        allMedia.unshift(newItem);
+      }
+
+      localStorage.setItem('custom_media_logs', JSON.stringify(customLogs));
+      closeModal();
+      renderMediaGrid();
+    });
+
+    // Filter controls
+    filterPills.forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        filterPills.forEach(p => p.classList.remove('active'));
+        const target = e.currentTarget as HTMLElement;
+        target.classList.add('active');
+        activeFilter = target.dataset.filter || 'all';
+        renderMediaGrid();
+      });
+    });
+
+    recFilterBtn?.addEventListener('click', () => {
+      onlyRecommended = !onlyRecommended;
+      recFilterBtn.classList.toggle('active', onlyRecommended);
+      renderMediaGrid();
+    });
+
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      renderMediaGrid();
+    });
+
+    function capitalize(str: string) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function escapeHtml(str: string) {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    renderMediaGrid();
+  }
+
+  setupLogsPage();
+  document.addEventListener('astro:after-swap', setupLogsPage);
+</script>

@@ -76,13 +76,29 @@ const { entry, prevEntry, nextEntry } = Astro.props;
       </div>
     </header>
 
+    {(entry.cover_image || entry.coverImage) && (
+      <div class="entry-cover-banner">
+        <img src={entry.cover_image || entry.coverImage} alt={entry.title} />
+      </div>
+    )}
+
     <div class="entry-divider"></div>
 
     <!-- Entry Content -->
     <div class="prose entry-content">
-      {entry.content.map((para) => (
-        <p>{para}</p>
-      ))}
+      {entry.content.map((para) => {
+        const trimmed = (para || '').trim();
+        const singleImg = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+        if (singleImg) {
+          return (
+            <figure class="diary-body-figure">
+              <img src={singleImg[2]} alt={singleImg[1]} loading="lazy" class="diary-body-inline-img" />
+              {singleImg[1] && singleImg[1] !== 'Photo' && <figcaption class="diary-body-caption">{singleImg[1]}</figcaption>}
+            </figure>
+          );
+        }
+        return <p>{para}</p>;
+      })}
     </div>
 
     <!-- Footer Nav -->
@@ -209,6 +225,49 @@ const { entry, prevEntry, nextEntry } = Astro.props;
 
   .val {
     color: var(--text-primary);
+  }
+
+  .entry-cover-banner {
+    width: 100%;
+    max-height: 440px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin: 1.75rem 0 2rem;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-light);
+  }
+
+  .entry-cover-banner img {
+    width: 100%;
+    height: 100%;
+    max-height: 440px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .diary-body-figure {
+    margin: 2.25rem 0;
+    text-align: center;
+  }
+
+  .diary-body-inline-img {
+    width: 100%;
+    max-height: 580px;
+    object-fit: contain;
+    border-radius: var(--radius-md);
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--border-light);
+    display: block;
+    margin: 0 auto;
+    background-color: var(--bg-card);
+  }
+
+  .diary-body-caption {
+    margin-top: 0.6rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    font-style: italic;
   }
 
   .entry-divider {

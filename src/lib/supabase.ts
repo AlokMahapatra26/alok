@@ -235,7 +235,20 @@ export async function getSupabaseDiaryEntries() {
     console.error('Error fetching diary entries from Supabase:', error);
     return [];
   }
-  return data || [];
+  return (data || []).map((d: any) => {
+    let coverImage = d.cover_image || '';
+    let content = d.content || [];
+    if (!coverImage && content.length > 0 && typeof content[0] === 'string' && content[0].startsWith('__COVER__:')) {
+      coverImage = content[0].replace('__COVER__:', '').trim();
+      content = content.slice(1);
+    }
+    return {
+      ...d,
+      cover_image: coverImage,
+      coverImage: coverImage,
+      content
+    };
+  });
 }
 
 export async function createSupabaseDiaryEntry(entry: {
@@ -247,6 +260,7 @@ export async function createSupabaseDiaryEntry(entry: {
   weather?: string;
   time_of_day?: string;
   read_time?: string;
+  cover_image?: string;
 }) {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured. Please add your credentials in .env');
@@ -258,17 +272,50 @@ export async function createSupabaseDiaryEntry(entry: {
     .trim()
     .replace(/\s+/g, '-') + '-' + Date.now().toString().slice(-4);
 
-  const { data, error } = await supabase
-    .from('diary_entries')
-    .insert([{
-      ...entry,
-      slug
-    }])
-    .select()
-    .single();
+  const payload: any = {
+    ...entry,
+    slug
+  };
 
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('diary_entries')
+      .insert([payload])
+      .select()
+      .single();
+
+    if (!error) return data;
+
+    if (error && error.message && error.message.includes('cover_image')) {
+      delete payload.cover_image;
+      if (entry.cover_image) {
+        payload.content = [`__COVER__:${entry.cover_image}`, ...(payload.content || [])];
+      }
+      const { data: retryData, error: retryError } = await supabase
+        .from('diary_entries')
+        .insert([payload])
+        .select()
+        .single();
+      if (retryError) throw retryError;
+      return retryData;
+    }
+    throw error;
+  } catch (err: any) {
+    if (err && err.message && err.message.includes('cover_image')) {
+      delete payload.cover_image;
+      if (entry.cover_image) {
+        payload.content = [`__COVER__:${entry.cover_image}`, ...(payload.content || [])];
+      }
+      const { data: retryData, error: retryError } = await supabase
+        .from('diary_entries')
+        .insert([payload])
+        .select()
+        .single();
+      if (retryError) throw retryError;
+      return retryData;
+    }
+    throw err;
+  }
 }
 
 export async function updateSupabaseDiaryEntry(id: string, updates: {
@@ -280,20 +327,64 @@ export async function updateSupabaseDiaryEntry(id: string, updates: {
   weather?: string;
   time_of_day?: string;
   read_time?: string;
+  cover_image?: string;
 }) {
   if (!isSupabaseConfigured()) {
     throw new Error('Supabase is not configured. Please add your credentials in .env');
   }
 
-  const { data, error } = await supabase
-    .from('diary_entries')
-    .update(updates)
-    .eq('id', id)
-    .select()
-    .single();
+  const payload: any = { ...updates };
 
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('diary_entries')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (!error) return data;
+
+    if (error && error.message && error.message.includes('cover_image')) {
+      delete payload.cover_image;
+      if (updates.cover_image !== undefined) {
+        const cleanContent = (payload.content || []).filter((p: string) => !p.startsWith('__COVER__:'));
+        if (updates.cover_image) {
+          cleanContent.unshift(`__COVER__:${updates.cover_image}`);
+        }
+        payload.content = cleanContent;
+      }
+      const { data: retryData, error: retryError } = await supabase
+        .from('diary_entries')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (retryError) throw retryError;
+      return retryData;
+    }
+    throw error;
+  } catch (err: any) {
+    if (err && err.message && err.message.includes('cover_image')) {
+      delete payload.cover_image;
+      if (updates.cover_image !== undefined) {
+        const cleanContent = (payload.content || []).filter((p: string) => !p.startsWith('__COVER__:'));
+        if (updates.cover_image) {
+          cleanContent.unshift(`__COVER__:${updates.cover_image}`);
+        }
+        payload.content = cleanContent;
+      }
+      const { data: retryData, error: retryError } = await supabase
+        .from('diary_entries')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single();
+      if (retryError) throw retryError;
+      return retryData;
+    }
+    throw err;
+  }
 }
 
 export async function deleteSupabaseDiaryEntry(id: string) {
@@ -368,3 +459,118 @@ export async function deleteSupabaseComment(commentId: string) {
 
   if (error) console.error('Error deleting comment:', error);
 }
+
+// ==========================================
+// Database Helpers: Thoughts About Me (Public Wall)
+// ==========================================
+
+export interface ThoughtEntry {
+  id: string;
+  name: string;
+  message: string;
+  relation?: string;
+  reply?: string;
+  replied_at?: string;
+  likes?: number;
+  created_at?: string;
+}
+
+export async function getSupabaseThoughts(): Promise<ThoughtEntry[]> {
+  if (!isSupabaseConfigured()) return [];
+  try {
+    const { data, error } = await supabase
+      .from('thoughts_about_me')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Could not load thoughts from Supabase (table may not exist yet):', error.message);
+      return [];
+    }
+    return data || [];
+  } catch (err) {
+    console.warn('Exception fetching thoughts:', err);
+    return [];
+  }
+}
+
+export async function addSupabaseThought(entry: {
+  name: string;
+  message: string;
+  relation?: string;
+}): Promise<ThoughtEntry | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('thoughts_about_me')
+      .insert([entry])
+      .select()
+      .single();
+
+    if (error) {
+      console.warn('Could not insert thought into Supabase:', error.message);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.warn('Exception adding thought to Supabase:', err);
+    return null;
+  }
+}
+
+export async function replySupabaseThought(id: string, reply: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+
+  try {
+    const { error } = await supabase
+      .from('thoughts_about_me')
+      .update({
+        reply,
+        replied_at: new Date().toISOString()
+      })
+      .eq('id', id);
+
+    if (error) {
+      console.warn('Could not save reply to Supabase:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Exception saving reply:', err);
+    return false;
+  }
+}
+
+export async function deleteSupabaseThought(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+
+  try {
+    const { error } = await supabase
+      .from('thoughts_about_me')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.warn('Could not delete thought from Supabase:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('Exception deleting thought:', err);
+    return false;
+  }
+}
+
+export async function likeSupabaseThought(id: string, currentLikes: number): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    await supabase
+      .from('thoughts_about_me')
+      .update({ likes: currentLikes + 1 })
+      .eq('id', id);
+  } catch (err) {
+    console.warn('Exception liking thought:', err);
+  }
+}
+
